@@ -11,7 +11,7 @@ class BinLogBootstrap
 {
     public static function getCacheKey()
     {
-        return env('app_name') . 'bin_log_replicator_last_position_v1';
+        return config('app.name', 'trigger') . '_bin_log_replicator_last_position_v1';
     }
 
     public static function save(BinLogCurrent $binLogCurrent)
