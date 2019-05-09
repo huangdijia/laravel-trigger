@@ -20,7 +20,7 @@ class LumenServiceProvider extends ServiceProvider
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/trigger.php', 'trigger');
         if ($this->app->runningInConsole()) {
-            $this->publishes([__DIR__ . '/../config/trigger.php' => config_path('trigger.php')]);
+            $this->publishes([__DIR__ . '/../config/trigger.php' => $this->app->basePath('config/trigger.php')]);
         }
     }
 
