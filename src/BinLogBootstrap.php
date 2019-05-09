@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Utils;
+namespace Huangdijia\Trigger;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
