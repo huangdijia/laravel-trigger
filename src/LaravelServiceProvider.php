@@ -4,7 +4,7 @@ namespace Huangdijia\Trigger;
 
 use Illuminate\Support\ServiceProvider;
 
-class LaravelTriggerServiceProvider extends ServiceProvider
+class LaravelServiceProvider extends ServiceProvider
 {
     public function boot()
     {
