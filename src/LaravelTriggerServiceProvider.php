@@ -18,9 +18,7 @@ class LaravelTriggerServiceProvider extends ServiceProvider
 
     public function configure()
     {
-        $this->mergeConfigFrom(
-            __DIR__ . '/../../config/trigger.php', 'trigger'
-        );
+        $this->mergeConfigFrom(__DIR__ . '/../../config/trigger.php', 'trigger');
         if ($this->app->runningInConsole()) {
             $this->publishes([__DIR__ . '/../../config/trigger.php' => config_path('trigger.php')]);
         }
