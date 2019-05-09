@@ -79,4 +79,4 @@ class ExampeEvent extends Event
 }
 ~~~
 
-more usage, look at `[MySQLReplication\Event\EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)`
+more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
