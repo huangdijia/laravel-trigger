@@ -9,12 +9,21 @@ MySQL trigger base on MySQLReplication
 
 ### Laravel
 
+install
+
 ~~~bash
 composer require huangdijia/laravel-trigger
+~~~
+
+publish config
+
+~~~bash
 php artisan vendor:publish --provider="Huangdijia\Trigger\LaravelServiceProvider"
 ~~~
 
 ### Lumen
+
+install
 
 ~~~bash
 composer require huangdijia/laravel-trigger
