@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 
-Restart the Horizon supervisors of multiple servers like `php artisan queue:restart`
+MySQL trigger base on MySQLReplication
 
 ## Installation
 
@@ -51,3 +51,32 @@ TRIGGER_PASSWORD=password
 ~~~bash
 php artisan trigger:start
 ~~~
+
+## Example
+
+~~~php
+<?php
+namespace App\Events;
+
+use Huangdijia\Trigger\Event;
+
+class ExampeEvent extends Event
+{
+    public function onUpdate(UpdateRowsDTO $event)
+    {
+        //
+    }
+
+    public function onDelete(DeleteRowsDTO $event)
+    {
+        //
+    }
+
+    public function onWrite(WriteRowsDTO $event)
+    {
+        //
+    }
+}
+~~~
+
+more usage, look at `[MySQLReplication\Event\EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)`
