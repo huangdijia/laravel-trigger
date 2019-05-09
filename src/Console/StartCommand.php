@@ -22,7 +22,7 @@ class StartCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Start trigger service"';
+    protected $description = 'Start trigger service';
     /**
      * Execute the console command.
      *
