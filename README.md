@@ -18,7 +18,7 @@ composer require huangdijia/laravel-trigger
 publish config
 
 ~~~bash
-php artisan vendor:publish --provider="Huangdijia\Trigger\LaravelServiceProvider"
+php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"
 ~~~
 
 ### Lumen
@@ -29,16 +29,22 @@ install
 composer require huangdijia/laravel-trigger
 ~~~
 
-copy `trigger.php` to `config/`
+copy `config/trigger.php` to `config/`
 
 ~~~bash
 cp vendor/huangdijia/laravel-trigger/config/trigger.php config/
 ~~~
 
+copy `routes/trigger.php` to `routes/`
+
+~~~bash
+cp vendor/huangdijia/laravel-trigger/routes/trigger.php routes/
+~~~
+
 edit `bootstrap/app.php` add:
 
 ~~~php
-$app->register(Huangdijia\Trigger\LumenServiceProvider::class);
+$app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 ...
 $app->configure('trigger');
 ~~~

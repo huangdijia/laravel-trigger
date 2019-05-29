@@ -3,6 +3,8 @@
 namespace Huangdijia\Trigger\Console;
 
 use Huangdijia\Trigger\BinLogBootstrap;
+use Huangdijia\Trigger\Facades\Trigger;
+use Huangdijia\Trigger\TriggerEvent;
 use Illuminate\Console\Command;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\EventSubscribers;
@@ -65,6 +67,12 @@ class StartCommand extends Command
                 })
                 ->reject(function ($class) {
                     return !is_subclass_of($class, EventSubscribers::class);
+                })
+                ->merge([TriggerEvent::class])
+                ->tap(function () {
+                    if (is_file(app()->basePath('routes/trigger.php'))) {
+                        include app()->basePath('routes/trigger.php');
+                    }
                 })
                 ->each(function ($class) use ($binLogStream) {
                     $binLogStream->registerSubscriber(app($class));

@@ -4,23 +4,31 @@ namespace Huangdijia\Trigger;
 
 use Illuminate\Support\ServiceProvider;
 
-class LaravelServiceProvider extends ServiceProvider
+class TriggerServiceProvider extends ServiceProvider
 {
     public function boot()
     {
+        //
     }
 
     public function register()
     {
         $this->configure();
         $this->registerCommands();
+
+        $this->app->singleton(Trigger::class, function($app) {
+            return new Trigger;
+        });
+        $this->app->alias(Trigger::class, 'trigger');
     }
 
     public function configure()
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/trigger.php', 'trigger');
+
         if ($this->app->runningInConsole()) {
-            $this->publishes([__DIR__ . '/../config/trigger.php' => config_path('trigger.php')]);
+            $this->publishes([__DIR__ . '/../config/trigger.php' => $this->app->basePath('config/trigger.php')]);
+            $this->publishes([__DIR__ . '/../routes/trigger.php' => $this->app->basePath('routes/trigger.php')]);
         }
     }
 
@@ -31,5 +39,13 @@ class LaravelServiceProvider extends ServiceProvider
                 Console\StartCommand::class,
             ]);
         }
+    }
+
+    public function provides()
+    {
+        return [
+            Trigger::class,
+            'trigger',
+        ];
     }
 }
