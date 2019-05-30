@@ -2,8 +2,7 @@
 
 namespace Huangdijia\Trigger\Console;
 
-use Huangdijia\Trigger\BinLogBootstrap;
-use Huangdijia\Trigger\Facades\Trigger;
+use Huangdijia\Trigger\Facades\Bootstrap;
 use Huangdijia\Trigger\TriggerEvent;
 use Illuminate\Console\Command;
 use MySQLReplication\Config\ConfigBuilder;
@@ -45,7 +44,7 @@ class StartCommand extends Command
 
             // 实例化
             $binLogStream = new MySQLReplicationFactory(
-                BinLogBootstrap::startFromPosition(new ConfigBuilder(), $this)
+                Bootstrap::startFromPosition(new ConfigBuilder(), $this)
                     ->withSlaveId(time())
                     ->withHost(config('trigger.host', ''))
                     ->withPort(config('trigger.port', ''))
@@ -82,7 +81,7 @@ class StartCommand extends Command
             $this->error($e->getMessage());
 
             // 清理缓存
-            BinLogBootstrap::clear();
+            Bootstrap::clear();
 
             // 重试
             $this->info('Retry now');
