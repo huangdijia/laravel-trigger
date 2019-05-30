@@ -98,6 +98,7 @@ class ExampeEvent extends Event
 
 ~~~php
 use Huangdijia\Trigger\Facades\Trigger;
+~~~
 
 ### common
 
