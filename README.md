@@ -128,4 +128,10 @@ Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleControlle
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
+## Event List
+
+~~~bash
+php artisan trigger:list
+~~~
+
 more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
