@@ -86,6 +86,8 @@ class StartCommand extends Command
 
             // 重试
             $this->info('Retry now');
+            sleep(1);
+
             goto start;
         }
     }
