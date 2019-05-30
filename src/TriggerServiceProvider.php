@@ -18,10 +18,15 @@ class TriggerServiceProvider extends ServiceProvider
         $this->configure();
         $this->registerCommands();
 
-        $this->app->singleton(Trigger::class, function($app) {
+        $this->app->singleton(Trigger::class, function ($app) {
             return new Trigger;
         });
         $this->app->alias(Trigger::class, 'trigger');
+
+        $this->app->singleton(Bootstrap::class, function ($app) {
+            return new Bootstrap;
+        });
+        $this->app->alias(Bootstrap::class, 'trigger.bootstrap');
     }
 
     public function configure()
@@ -48,6 +53,8 @@ class TriggerServiceProvider extends ServiceProvider
     {
         return [
             Trigger::class,
+            'trigger',
+            Bootstrap::class,
             'trigger',
         ];
     }
