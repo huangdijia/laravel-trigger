@@ -2,6 +2,7 @@
 
 namespace Huangdijia\Trigger;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
@@ -42,7 +43,7 @@ class Bootstrap
      */
     public function save(BinLogCurrent $binLogCurrent)
     {
-        Cache::put($this->getCacheKey(), serialize($binLogCurrent), now()->addHours(1));
+        Cache::put($this->getCacheKey(), serialize($binLogCurrent), Carbon::now()->addHours(1));
     }
 
     /**
