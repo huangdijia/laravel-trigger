@@ -42,7 +42,7 @@ class Bootstrap
      */
     public function save(BinLogCurrent $binLogCurrent)
     {
-        Cache::put($this->getCacheKey(), serialize($binLogCurrent), 60);
+        Cache::put($this->getCacheKey(), serialize($binLogCurrent), now()->addHours(1));
     }
 
     /**
