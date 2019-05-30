@@ -39,6 +39,7 @@ class TriggerServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 Console\StartCommand::class,
+                Console\ListCommand::class,
             ]);
         }
     }
