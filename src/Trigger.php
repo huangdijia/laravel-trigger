@@ -98,7 +98,7 @@ class Trigger
      * @param \MySQLReplication\Event\DTO\EventDTO $event
      * @return void
      */
-    public function trigger($events, EventDTO $event = null)
+    public function fire($events, EventDTO $event = null)
     {
         collect($events)->each(function ($e) use ($event) {
             collect(Arr::get($this->events, $e))->each(function ($action) use ($event) {
@@ -115,7 +115,7 @@ class Trigger
      * @param \MySQLReplication\Event\DTO\EventDTO $event
      * @return void
      */
-    public function fire(EventDTO $event)
+    public function dispatch(EventDTO $event)
     {
         $events    = [];
         $eventType = $event->getType();
@@ -131,7 +131,7 @@ class Trigger
         $events[] = "*.*.{$eventType}";
         $events[] = "*.*.*";
 
-        $this->trigger($events, $event);
+        $this->fire($events, $event);
 
         return;
     }
@@ -140,10 +140,9 @@ class Trigger
      * 解析操作
      *
      * @param mixed $action
-     * @param string $defaultHandleMethod
      * @return mixed
      */
-    private function parseAction($action, $defaultHandleMethod = 'handle')
+    private function parseAction($action)
     {
         if (is_callable($action)) {
             return $action;
@@ -152,11 +151,11 @@ class Trigger
         if (is_string($action)) {
             $action = explode('@', $action);
             $object = app($action[0]);
-            $method = $action[1] ?? $defaultHandleMethod;
+            $method = $action[1] ?? 'handle';
 
             return [$object, $method];
         } elseif (is_object($action)) {
-            return [$action, $defaultHandleMethod];
+            return [$action, 'handle'];
         }
 
         if (!is_callable($action)) {
