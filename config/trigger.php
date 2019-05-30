@@ -8,4 +8,6 @@ return [
     'databases' => env('TRIGGER_DATABASES') ? explode(',', env('TRIGGER_DATABASES')) : [],
     'tables'    => env('TRIGGER_TABLES') ? explode(',', env('TRIGGER_TABLES')) : [],
     'heartbeat' => env('TRIGGER_HEARTBEAT', 3),
+
+    'event_path' => app()->basePath('app/Events'),
 ];

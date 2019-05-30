@@ -8,7 +8,9 @@ class TriggerServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        //
+        if (is_file(app()->basePath('routes/trigger.php'))) {
+            include app()->basePath('routes/trigger.php');
+        }
     }
 
     public function register()
