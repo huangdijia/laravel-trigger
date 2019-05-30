@@ -18,7 +18,7 @@ composer require huangdijia/laravel-trigger
 publish config
 
 ~~~bash
-php artisan vendor:publish --provider="Huangdijia\Trigger\LaravelServiceProvider"
+php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"
 ~~~
 
 ### Lumen
@@ -29,16 +29,22 @@ install
 composer require huangdijia/laravel-trigger
 ~~~
 
-copy `trigger.php` to `config/`
+copy `config/trigger.php` to `config/`
 
 ~~~bash
 cp vendor/huangdijia/laravel-trigger/config/trigger.php config/
 ~~~
 
+copy `routes/trigger.php` to `routes/`
+
+~~~bash
+cp vendor/huangdijia/laravel-trigger/routes/trigger.php routes/
+~~~
+
 edit `bootstrap/app.php` add:
 
 ~~~php
-$app->register(Huangdijia\Trigger\LumenServiceProvider::class);
+$app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 ...
 $app->configure('trigger');
 ~~~
@@ -86,6 +92,39 @@ class ExampeEvent extends Event
         //
     }
 }
+~~~
+
+## Event Route
+
+~~~php
+use Huangdijia\Trigger\Facades\Trigger;
+
+### common
+
+~~~php
+Trigger::on('database.table', 'write', function($event) { /* do something */ });
+~~~
+
+### multi-tables and multi-evnets
+
+~~~php
+Trigger::on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
+~~~
+
+### multi-events
+
+~~~php
+Trigger::on('database.table1,database.table2', [
+    'write'  => function($event) { /* do something */ },
+    'update' => function($event) { /* do something */ },
+]);
+~~~
+
+### action as controller
+
+~~~php
+Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
+Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
 more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
