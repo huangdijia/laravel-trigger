@@ -94,4 +94,37 @@ class ExampeEvent extends Event
 }
 ~~~
 
+## Event Route
+
+~~~php
+use Huangdijia\Trigger\Facades\Trigger;
+
+### common
+
+~~~php
+Trigger::on('database.table', 'write', function($event) { /* do something */ });
+~~~
+
+### multi-tables and multi-evnets
+
+~~~php
+Trigger::on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
+~~~
+
+### multi-events
+
+~~~php
+Trigger::on('database.table1,database.table2', [
+    'write'  => function($event) { /* do something */ },
+    'update' => function($event) { /* do something */ },
+]);
+~~~
+
+### action as controller
+
+~~~php
+Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
+Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
+~~~
+
 more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
