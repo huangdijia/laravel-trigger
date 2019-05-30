@@ -26,10 +26,6 @@
         ],
         "psr-4": {
             "Huangdijia\\Trigger\\": "src/"
-        },
-        "class-alias": {
-            "Huangdijia\\Trigger\\LaravelServiceProvider": "Huangdijia\\Trigger\\TriggerServiceProvider",
-            "Huangdijia\\Trigger\\LumenServiceProvider": "Huangdijia\\Trigger\\TriggerServiceProvider"
         }
     },
     "extra": {

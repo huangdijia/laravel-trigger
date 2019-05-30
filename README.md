@@ -67,7 +67,7 @@ TRIGGER_PASSWORD=password
 php artisan trigger:start
 ~~~
 
-## Example
+## Event Example
 
 ~~~php
 <?php
