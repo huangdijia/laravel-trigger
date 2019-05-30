@@ -3,9 +3,9 @@
 namespace Huangdijia\Trigger\Facades;
 
 use Illuminate\Support\Facades\Facade;
-use Huangdijia\Trigger\Trigger as Accessor;
+use Huangdijia\Trigger\Bootstrap as Accessor;
 
-class Trigger extends Facade
+class Bootstrap extends Facade
 {
     public static function getFacadeAccessor()
     {

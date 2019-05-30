@@ -12,6 +12,6 @@ class TriggerEvent extends Event
      */
     protected function allEvents(EventDTO $event)
     {
-        Trigger::fire($event);
+        Trigger::dispatch($event);
     }
 }
