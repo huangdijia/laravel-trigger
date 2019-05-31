@@ -64,13 +64,14 @@ class StartCommand extends Command
                     return !is_subclass_of($subscriber, EventSubscribers::class);
                 })
                 ->merge([Trigger::class, Terminate::class, Heartbeat::class])
+                ->unique()
                 ->each(function ($subscriber) use ($binLogStream) {
                     $binLogStream->registerSubscriber(app($subscriber));
                 })
                 ->tap(function ($subscribers) use ($binLogStream) {
                     $this->info('Registered Subscribers');
                     $this->table(['Subscriber', 'Registerd'], $subscribers->transform(function($subscriber) { return [$subscriber, '√'];}));
-                    // run
+
                     $this->info("\nTrigger running");
                     $binLogStream->run();
                 });
