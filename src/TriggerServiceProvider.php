@@ -45,6 +45,7 @@ class TriggerServiceProvider extends ServiceProvider
             $this->commands([
                 Console\StartCommand::class,
                 Console\ListCommand::class,
+                Console\TerminateCommand::class,
             ]);
         }
     }
