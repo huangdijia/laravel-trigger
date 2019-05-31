@@ -3,19 +3,19 @@
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 
-MySQL trigger base on MySQLReplication [中文说明](README-CN.md)
+MySQL trigger base on MySQLReplication [English Document](README.md)
 
-## Installation
+## 安装
 
 ### Laravel
 
-install
+composer 安装
 
 ~~~bash
 composer require huangdijia/laravel-trigger
 ~~~
 
-publish config
+发布配置
 
 ~~~bash
 php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"
@@ -23,25 +23,25 @@ php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider
 
 ### Lumen
 
-install
+composer 安装
 
 ~~~bash
 composer require huangdijia/laravel-trigger
 ~~~
 
-copy `config/trigger.php` to `config/`
+复制配置 `config/trigger.php` 到 `config/`
 
 ~~~bash
 cp vendor/huangdijia/laravel-trigger/config/trigger.php config/
 ~~~
 
-copy `routes/trigger.php` to `routes/`
+复制路由 `routes/trigger.php` 到 `routes/`
 
 ~~~bash
 cp vendor/huangdijia/laravel-trigger/routes/trigger.php routes/
 ~~~
 
-edit `bootstrap/app.php` add:
+编辑 `bootstrap/app.php`，注册服务及加载配置:
 
 ~~~php
 $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
@@ -49,9 +49,9 @@ $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 $app->configure('trigger');
 ~~~
 
-### Configure
+### 配置
 
-edit `.env`, add:
+编辑 `.env`, 配置以下内容:
 
 ~~~env
 TRIGGER_HOST=192.168.xxx.xxx
@@ -61,13 +61,13 @@ TRIGGER_PASSWORD=password
 ...
 ~~~
 
-## Usage
+## 启动服务
 
 ~~~bash
 php artisan trigger:start
 ~~~
 
-## Event Example
+## 事件定义
 
 ~~~php
 <?php
@@ -94,25 +94,25 @@ class ExampeEvent extends Event
 }
 ~~~
 
-## Event Route
+## 事件路由
 
 ~~~php
 use Huangdijia\Trigger\Facades\Trigger;
 ~~~
 
-### common
+### 单表单事件
 
 ~~~php
 Trigger::on('database.table', 'write', function($event) { /* do something */ });
 ~~~
 
-### multi-tables and multi-evnets
+### 多表多事件
 
 ~~~php
 Trigger::on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
 ~~~
 
-### multi-events
+### 多事件
 
 ~~~php
 Trigger::on('database.table1,database.table2', [
@@ -121,23 +121,23 @@ Trigger::on('database.table1,database.table2', [
 ]);
 ~~~
 
-### action as controller
+### 路由到操作
 
 ~~~php
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
-## Event List
+## 查看事件列表
 
 ~~~bash
 php artisan trigger:list
 ~~~
 
-## Terminate
+## 终止服务
 
 ~~~bash
 php artisan trigger:terminate
 ~~~
 
-more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
+更多事件说明参考  [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
