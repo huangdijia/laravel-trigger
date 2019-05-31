@@ -2,15 +2,15 @@
 
 namespace Huangdijia\Trigger\Console;
 
-use Illuminate\Console\Command;
+use Huangdijia\Trigger\Subscribers\Heartbeat;
+use Huangdijia\Trigger\Subscribers\Terminate;
+use Huangdijia\Trigger\Subscribers\Trigger;
 use Huangdijia\Trigger\Facades\Bootstrap;
+use Illuminate\Console\Command;
 use MySQLReplication\Config\ConfigBuilder;
-use Huangdijia\Trigger\Events\TriggerEvent;
 use MySQLReplication\Event\EventSubscribers;
-use Huangdijia\Trigger\Events\HeartbeatEvent;
-use Huangdijia\Trigger\Events\TerminateEvent;
-use MySQLReplication\MySQLReplicationFactory;
 use MySQLReplication\Exception\MySQLReplicationException;
+use MySQLReplication\MySQLReplicationFactory;
 
 class StartCommand extends Command
 {
@@ -35,16 +35,16 @@ class StartCommand extends Command
     {
         start:
         try {
-            // 信息打印
-            $this->info(sprintf(
-                "Host:%s\nPort:%s\nUser:%s\nPassword:%s\n",
-                config('trigger.host', ''),
-                config('trigger.port', ''),
-                config('trigger.user', ''),
-                config('trigger.password', '')
-            ));
+            // print informations
+            $this->info('Configure');
+            $this->table(['Name', 'Value'], [
+                ['Host', config('trigger.host')],
+                ['Port', config('trigger.port')],
+                ['User', config('trigger.user')],
+                ['Password', config('trigger.password')],
+            ]);
 
-            // 实例化
+            // create replication
             $binLogStream = new MySQLReplicationFactory(
                 Bootstrap::startFromPosition(new ConfigBuilder(), $this)
                     ->withSlaveId(time())
@@ -58,34 +58,29 @@ class StartCommand extends Command
                     ->build()
             );
 
-            // 事件自动发现 & 注册
-            collect(glob(config('trigger.event_path') . '/*.php'))
-                ->mapWithKeys(function ($path) {
-                    $class = str_replace(app()->path(), 'App', pathinfo($path, PATHINFO_DIRNAME)) . '/' . pathinfo($path, PATHINFO_FILENAME);
-                    $class = strtr($class, '/', '\\');
-
-                    return [$path => $class];
+            // Register subscribers and run
+            collect(config('trigger.subscribers', []))
+                ->reject(function ($subscriber) {
+                    return !is_subclass_of($subscriber, EventSubscribers::class);
                 })
-                ->reject(function ($class) {
-                    return !is_subclass_of($class, EventSubscribers::class);
+                ->merge([Trigger::class, Terminate::class, Heartbeat::class])
+                ->each(function ($subscriber) use ($binLogStream) {
+                    $binLogStream->registerSubscriber(app($subscriber));
                 })
-                ->merge([TriggerEvent::class, TerminateEvent::class, HeartbeatEvent::class])
-                ->each(function ($class) use ($binLogStream) {
-                    $binLogStream->registerSubscriber(app($class));
-                    $this->info("Subscriber {$class} registered");
+                ->tap(function ($subscribers) use ($binLogStream) {
+                    $this->table(['Subscriber', 'Registerd'], $subscribers->transform(function($subscriber) { return [$subscriber, '√'];}));
+                    // run
+                    $this->info("\nTrigger running");
+                    $binLogStream->run();
                 });
 
-            // 执行
-            $this->info("\nTrigger running");
-            $binLogStream->run();
         } catch (MySQLReplicationException $e) {
-            // 输出错误
             $this->error($e->getMessage());
 
-            // 清理缓存
+            // clear replication cache
             Bootstrap::clear();
 
-            // 重试
+            // retry
             $this->info('Retry now');
             sleep(1);
 

@@ -67,15 +67,15 @@ TRIGGER_PASSWORD=password
 php artisan trigger:start
 ~~~
 
-## Event Example
+## Subscriber
 
 ~~~php
 <?php
-namespace App\Events;
+namespace App\Listeners;
 
-use Huangdijia\Trigger\Event;
+use Huangdijia\Trigger\EventSubscriber;
 
-class ExampeEvent extends Event
+class Exampe extends EventSubscriber
 {
     public function onUpdate(UpdateRowsDTO $event)
     {
