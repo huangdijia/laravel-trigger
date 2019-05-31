@@ -3,7 +3,7 @@
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 
-MySQL trigger base on MySQLReplication [English Document](README-CN.md)
+MySQL trigger base on MySQLReplication [English Document](README.md)
 
 ## 安装
 
