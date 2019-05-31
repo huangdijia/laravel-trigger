@@ -8,6 +8,5 @@ return [
     'databases'  => env('TRIGGER_DATABASES', '') ? explode(',', env('TRIGGER_DATABASES')) : [],
     'tables'     => env('TRIGGER_TABLES', '') ? explode(',', env('TRIGGER_TABLES')) : [],
     'heartbeat'  => (int) env('TRIGGER_HEARTBEAT', 3),
-    'cache_key'  => env('TRIGGER_CACHE_KEY', 'trigger:replication'),
     'event_path' => app()->basePath('app/Events'),
 ];
