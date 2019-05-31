@@ -68,6 +68,7 @@ class StartCommand extends Command
                     $binLogStream->registerSubscriber(app($subscriber));
                 })
                 ->tap(function ($subscribers) use ($binLogStream) {
+                    $this->info('Registered Subscribers');
                     $this->table(['Subscriber', 'Registerd'], $subscribers->transform(function($subscriber) { return [$subscriber, '√'];}));
                     // run
                     $this->info("\nTrigger running");
