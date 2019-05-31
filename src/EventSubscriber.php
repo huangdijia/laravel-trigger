@@ -4,7 +4,7 @@ namespace Huangdijia\Trigger;
 
 use MySQLReplication\Event\EventSubscribers;
 
-class Event extends EventSubscribers
+class EventSubscriber extends EventSubscribers
 {
     //
 }
