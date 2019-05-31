@@ -82,24 +82,22 @@ class Bootstrap
         $binLogCache = Cache::get($this->replicationCacheKey);
 
         if (!$binLogCache) {
-            $command->info('cache of position expired');
+            $command->warn('cache of position expired');
             return $builder;
         }
 
         $binLogCurrent = unserialize($binLogCache);
 
         if (!$binLogCurrent) {
-            $command->info('position unserialize faild');
+            $command->error('position unserialize faild');
             return $builder;
         }
 
-        $info = sprintf(
-            'starting from file:%s, position:%s bin log position',
-            $binLogCurrent->getBinFileName(),
-            $binLogCurrent->getBinLogPosition()
-        );
-
-        $command->info($info);
+        $command->info('BinLogInformation');
+        $command->table(['Parameter', 'Value'], [
+            ['BinLogFileName', $binLogCurrent->getBinFileName()],
+            ['BinLogPosition', $binLogCurrent->getBinLogPosition()],
+        ]);
 
         return $builder
             ->withBinLogFileName($binLogCurrent->getBinFileName())

@@ -1,12 +1,12 @@
 <?php
 
-namespace Huangdijia\Trigger\Events;
+namespace Huangdijia\Trigger\Subscribers;
 
-use Huangdijia\Trigger\Event;
+use Huangdijia\Trigger\EventSubscriber;
 use Huangdijia\Trigger\Facades\Bootstrap;
 use MySQLReplication\Event\DTO\EventDTO;
 
-class TerminateEvent extends Event
+class Terminate extends EventSubscriber
 {
     /**
      * @param EventDTO $event
