@@ -36,8 +36,8 @@ class StartCommand extends Command
         start:
         try {
             // print informations
-            $this->info('Configure');
-            $this->table(['Name', 'Value'], [
+            $this->option('verbose') && $this->info('Configure');
+            $this->option('verbose') && $this->table(['Name', 'Value'], [
                 ['Host', config('trigger.host')],
                 ['Port', config('trigger.port')],
                 ['User', config('trigger.user')],
