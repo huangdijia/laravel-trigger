@@ -134,4 +134,10 @@ Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleControlle
 php artisan trigger:list
 ~~~
 
+## Terminate
+
+~~~bash
+php artisan trigger:terminate
+~~~
+
 more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)

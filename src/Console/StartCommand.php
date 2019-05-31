@@ -2,13 +2,15 @@
 
 namespace Huangdijia\Trigger\Console;
 
-use Huangdijia\Trigger\Facades\Bootstrap;
-use Huangdijia\Trigger\TriggerEvent;
 use Illuminate\Console\Command;
+use Huangdijia\Trigger\Facades\Bootstrap;
 use MySQLReplication\Config\ConfigBuilder;
+use Huangdijia\Trigger\Events\TriggerEvent;
 use MySQLReplication\Event\EventSubscribers;
-use MySQLReplication\Exception\MySQLReplicationException;
+use Huangdijia\Trigger\Events\HeartbeatEvent;
+use Huangdijia\Trigger\Events\TerminateEvent;
 use MySQLReplication\MySQLReplicationFactory;
+use MySQLReplication\Exception\MySQLReplicationException;
 
 class StartCommand extends Command
 {
@@ -67,7 +69,7 @@ class StartCommand extends Command
                 ->reject(function ($class) {
                     return !is_subclass_of($class, EventSubscribers::class);
                 })
-                ->merge([TriggerEvent::class])
+                ->merge([TriggerEvent::class, TerminateEvent::class, HeartbeatEvent::class])
                 ->each(function ($class) use ($binLogStream) {
                     $binLogStream->registerSubscriber(app($class));
                     $this->info("Subscriber {$class} registered");

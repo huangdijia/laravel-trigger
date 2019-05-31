@@ -2,28 +2,42 @@
 
 namespace Huangdijia\Trigger;
 
-use Illuminate\Support\Carbon;
 use Illuminate\Console\Command;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
-use MySQLReplication\Event\DTO\HeartbeatDTO;
+use MySQLReplication\Event\DTO\EventDTO;
 
 class Bootstrap
 {
+    private $bootTime            = null;
+    private $replicationCacheKey = 'trigger:replication';
+    private $restartCacheKey     = 'trigger:restart';
+
     public function __construct()
     {
-        //
+        $this->bootTime = time();
     }
 
     /**
-     * get cache key
+     * Terminate
      *
-     * @return string
+     * @return void
      */
-    public function getCacheKey()
+    public function terminate()
     {
-        return config('trigger.cache_key', 'trigger:replication');
+        Cache::put($this->restartCacheKey, time());
+    }
+
+    /**
+     * Is terminated
+     *
+     * @return boolean
+     */
+    public function isTerminated()
+    {
+        return Cache::get($this->restartCacheKey, 0) > $this->bootTime;
     }
 
     /**
@@ -31,7 +45,7 @@ class Bootstrap
      *
      * @return void
      */
-    public function heartbeat(HeartbeatDTO $event)
+    public function heartbeat(EventDTO $event)
     {
         $this->save($event->getEventInfo()->getBinLogCurrent());
     }
@@ -43,7 +57,7 @@ class Bootstrap
      */
     public function save(BinLogCurrent $binLogCurrent)
     {
-        Cache::put($this->getCacheKey(), serialize($binLogCurrent), Carbon::now()->addHours(1));
+        Cache::put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
     }
 
     /**
@@ -53,7 +67,7 @@ class Bootstrap
      */
     public function clear()
     {
-        Cache::forget($this->getCacheKey());
+        Cache::forget($this->replicationCacheKey);
     }
 
     /**
@@ -65,7 +79,7 @@ class Bootstrap
      */
     public function startFromPosition(ConfigBuilder $builder, Command $command = null)
     {
-        $binLogCache = Cache::get($this->getCacheKey());
+        $binLogCache = Cache::get($this->replicationCacheKey);
 
         if (!$binLogCache) {
             $command->info('cache of position expired');

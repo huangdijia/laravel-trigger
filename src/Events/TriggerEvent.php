@@ -1,7 +1,8 @@
 <?php
 
-namespace Huangdijia\Trigger;
+namespace Huangdijia\Trigger\Events;
 
+use Huangdijia\Trigger\Event;
 use Huangdijia\Trigger\Facades\Trigger;
 use MySQLReplication\Event\DTO\EventDTO;
 
