@@ -3,9 +3,9 @@
 namespace Huangdijia\Trigger\Console;
 
 use Closure;
-use Illuminate\Support\Arr;
-use Illuminate\Console\Command;
 use Huangdijia\Trigger\Facades\Trigger;
+use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 
 class ListCommand extends Command
 {
@@ -14,13 +14,13 @@ class ListCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trigger:list';
+    protected $signature = 'trigger:list {--database= : Filter by database} {--table= : Filter by table} {--event= : Filter by event}';
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'List trigger events';
+    protected $description = 'List all trigger events';
     /**
      * Execute the console command.
      *
@@ -28,9 +28,35 @@ class ListCommand extends Command
      */
     public function handle()
     {
-        $actions = collect(Arr::dot(Trigger::getEvents()))->transform(function($action, $key) use (&$actions) {
-            return explode('.', $key . '.' . $this->actionToString($action));
-        });
+        $actions = collect(Arr::dot(Trigger::getEvents()))
+            ->transform(function ($action, $key) {
+                [$database, $table, $event, $num, $action] = explode('.', $key . '.' . $this->actionToString($action));
+                return [
+                    'database' => $database,
+                    'table'    => $table,
+                    'event'    => $event,
+                    'num'      => $num,
+                    'action'   => $action,
+                ];
+            })
+            ->when($this->option('database'), function ($collection, $database) {
+                return $collection->where('database', $database);
+            })
+            ->when($this->option('table'), function ($collection, $table) {
+                return $collection->where('table', $table);
+            })
+            ->when($this->option('event'), function ($collection, $event) {
+                return $collection->where('event', $event);
+            })
+            ->transform(function ($item) {
+                return [
+                    $item['database'],
+                    $item['table'],
+                    $item['event'],
+                    $item['num'],
+                    $item['action'],
+                ];
+            });
 
         $this->table(['Database', 'Table', 'Event', 'Num', 'Action'], $actions);
     }

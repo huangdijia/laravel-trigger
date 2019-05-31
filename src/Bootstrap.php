@@ -27,7 +27,7 @@ class Bootstrap
      */
     public function terminate()
     {
-        Cache::put($this->restartCacheKey, time());
+        Cache::forever($this->restartCacheKey, time());
     }
 
     /**

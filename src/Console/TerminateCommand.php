@@ -18,7 +18,7 @@ class TerminateCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Terminate the master so it can be restarted';
+    protected $description = 'Terminate the process so it can be restarted';
     /**
      * Execute the console command.
      *
@@ -28,6 +28,6 @@ class TerminateCommand extends Command
     {
         Bootstrap::terminate();
 
-        $this->info('done');
+        $this->info('Broadcasting restart signal.');
     }
 }
