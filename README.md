@@ -75,7 +75,7 @@ namespace App\Listeners;
 
 use Huangdijia\Trigger\EventSubscriber;
 
-class Exampe extends EventSubscriber
+class ExampeSubscriber extends EventSubscriber
 {
     public function onUpdate(UpdateRowsDTO $event)
     {
@@ -126,6 +126,52 @@ Trigger::on('database.table1,database.table2', [
 ~~~php
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
+~~~
+
+### action as callable
+
+~~~php
+class Foo
+{
+    public static function bar($event)
+    {
+        dump($event);
+    }
+}
+
+Trigger::on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
+Trigger::on('database.table', 'write', ['Foo', 'bar']);
+~~~
+
+### action as job
+
+Job
+
+~~~php
+namespace App\Jobs;
+
+class ExampleJob extends Job
+{
+    private $event;
+
+    public function __construct($event)
+    {
+        $this->event = $event;
+    }
+
+    public function handle()
+    {
+        dump($this->event);
+    }
+}
+
+~~~
+
+Route
+
+~~~php
+Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
+Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
 ## Event List
