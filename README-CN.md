@@ -75,7 +75,7 @@ namespace App\Listeners;
 
 use Huangdijia\Trigger\EventSubscriber;
 
-class Exampe extends EventSubscriber
+class ExampeSubscriber extends EventSubscriber
 {
     public function onUpdate(UpdateRowsDTO $event)
     {
@@ -126,6 +126,52 @@ Trigger::on('database.table1,database.table2', [
 ~~~php
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
 Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
+~~~
+
+### 路由到回调
+
+~~~php
+class Foo
+{
+    public static function bar($event)
+    {
+        dump($event);
+    }
+}
+
+Trigger::on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
+Trigger::on('database.table', 'write', ['Foo', 'bar']);
+~~~
+
+### 路由到任务
+
+任务
+
+~~~php
+namespace App\Jobs;
+
+class ExampleJob extends Job
+{
+    private $event;
+
+    public function __construct($event)
+    {
+        $this->event = $event;
+    }
+
+    public function handle()
+    {
+        dump($this->event);
+    }
+}
+
+~~~
+
+路由
+
+~~~php
+Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
+Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
 ## 查看事件列表
