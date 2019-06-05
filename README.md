@@ -3,7 +3,9 @@
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 
-MySQL trigger base on MySQLReplication [中文说明](README-CN.md)
+Subscribe MySQL events like jQuery, base on [php-mysql-replication](https://github.com/krowinski/php-mysql-replication)
+
+[中文说明](README-CN.md)
 
 ## Installation
 
@@ -93,6 +95,10 @@ class ExampeSubscriber extends EventSubscriber
     }
 }
 ~~~
+
+more subscriber usage
+
+[EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
 
 ## Event Route
 
@@ -185,5 +191,3 @@ php artisan trigger:list
 ~~~bash
 php artisan trigger:terminate
 ~~~
-
-more usage, look at [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
