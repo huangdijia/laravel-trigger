@@ -172,8 +172,9 @@ class Trigger
         // action as common callable
         $method = $action[1] ?? 'handle';
 
-        if (!is_callable($action)) {
-            throw new Exception("{$class}::{$method}() is undefined", 1);
+        // check is method callable
+        if (!is_callable([$class, $method])) {
+            throw new Exception("{$class}::{$method}() is not callable or not exists", 1);
         }
 
         $reflectionMethod = new ReflectionMethod($class, $method);
