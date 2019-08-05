@@ -11,7 +11,7 @@ class Trigger extends EventSubscriber
     /**
      * @param EventDTO $event
      */
-    protected function allEvents(EventDTO $event)
+    protected function allEvents(EventDTO $event): void
     {
         TriggerFacade::dispatch($event);
     }

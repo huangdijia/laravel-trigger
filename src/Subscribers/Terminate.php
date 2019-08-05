@@ -11,7 +11,7 @@ class Terminate extends EventSubscriber
     /**
      * @param EventDTO $event
      */
-    protected function allEvents(EventDTO $event)
+    protected function allEvents(EventDTO $event): void
     {
         if (Bootstrap::isTerminated()) {
             die('Terminated');
