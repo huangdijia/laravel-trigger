@@ -7,6 +7,29 @@ Subscribe MySQL events like jQuery, base on [php-mysql-replication](https://gith
 
 [中文说明](README-CN.md)
 
+## MySQL server settings
+
+In your MySQL server configuration file you need to enable replication:
+
+~~~bash
+[mysqld]
+server-id        = 1
+log_bin          = /var/log/mysql/mysql-bin.log
+expire_logs_days = 10
+max_binlog_size  = 100M
+binlog_row_image = full
+binlog-format    = row #Very important if you want to receive write, update and delete row events
+Mysql replication events explained https://dev.mysql.com/doc/internals/en/event-meanings.html
+~~~
+
+Mysql user privileges:
+
+~~~bash
+GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'user'@'host';
+
+GRANT SELECT ON `dbName`.* TO 'user'@'host';
+~~~
+
 ## Installation
 
 ### Laravel
