@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
+use MySQLReplication\Event\EventSubscribers;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
@@ -77,7 +78,7 @@ class Trigger
     {
         $builder = new ConfigBuilder();
 
-        $builder->withSlaveId((int) substr(microtime(true), -4))
+        $builder->withSlaveId(time())
             ->withHost($this->config['host'] ?? '')
             ->withPort($this->config['port'] ?? '')
             ->withUser($this->config['user'] ?? '')
@@ -129,6 +130,7 @@ class Trigger
             })
             ->unique()
             ->each(function ($subscriber) use ($binLogStream) {
+                dump($subscriber);
                 $binLogStream->registerSubscriber(new $subscriber($this));
             })
             ->tap(function ($subscribers) use ($binLogStream) {
