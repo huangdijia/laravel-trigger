@@ -20,7 +20,11 @@ class Manager
             return $this->replications[$name];
         }
 
-        $config = $this->config['replications'][$name] ?? [];
+        if (!isset($this->config['replications'][$name])) {
+            throw new \Exception("Config 'trigger.replications.{$name}' is undefined", 1);
+        }
+
+        $config = $this->config['replications'][$name];
 
         return $this->replications[$name] = new Trigger($config);
     }
