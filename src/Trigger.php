@@ -77,7 +77,7 @@ class Trigger
     {
         $builder = new ConfigBuilder();
 
-        $builder->withSlaveId(substr(microtime(true), -4))
+        $builder->withSlaveId((int) substr(microtime(true), -4))
             ->withHost($this->config['host'] ?? '')
             ->withPort($this->config['port'] ?? '')
             ->withUser($this->config['user'] ?? '')
