@@ -11,7 +11,7 @@ class StartCommand extends Command
     /**
      * The name and signature of the console command.
      *
-     * @var stringå
+     * @var stringï¿½
      */
     protected $signature = 'trigger:start {--R|replication=default : replication}';
     /**
@@ -31,16 +31,31 @@ class StartCommand extends Command
 
         start:
         try {
-            // print informations
-            $this->option('verbose') && $this->info('Configure');
-            $this->option('verbose') && $this->table(['Name', 'Value'], [
-                ['Host', $trigger->getConfig('host')],
-                ['Port', $trigger->getConfig('port')],
-                ['User', $trigger->getConfig('user')],
-                ['Password', $trigger->getConfig('password')],
-            ]);
+            if ($this->option('verbose')) {
+                $this->info('Configure');
+                $this->table(
+                    ['Name', 'Value'],
+                    collect($trigger->getConfig())
+                    ->merge(['bootat' => time()])
+                    ->transform(function ($item, $key) {
+                        if (!is_scalar($item)) {
+                            $item = json_encode($item);
+                        }
 
-            // Register subscribers and run
+                        return [ucfirst($key), $item];
+                    })
+                );
+
+                $this->info('Subscribers');
+                $this->table(
+                    ['Subscriber', 'Registerd'],
+                    collect($trigger->getSubscribers())
+                        ->transform(function ($subscriber) {
+                            return [$subscriber, 'âˆš'];
+                        })
+                );
+            }
+
             $trigger->start();
 
         } catch (MySQLReplicationException $e) {

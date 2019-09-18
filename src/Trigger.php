@@ -5,6 +5,8 @@ namespace Huangdijia\Trigger;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
@@ -16,11 +18,15 @@ class Trigger
 {
     protected $name;
     protected $config;
-    protected $events      = [];
-    protected $subscribers = [];
+    protected $events = [];
     protected $bootTime;
     protected $replicationCacheKey;
     protected $restartCacheKey;
+    protected $defaultSubscribers = [
+        \Huangdijia\Trigger\Subscribers\Trigger::class,
+        \Huangdijia\Trigger\Subscribers\Terminate::class,
+        \Huangdijia\Trigger\Subscribers\Heartbeat::class,
+    ];
 
     public function __construct(string $name = 'default', array $config)
     {
@@ -34,18 +40,32 @@ class Trigger
 
     /**
      * Get config
-     * 
+     *
      * @param string $key
      * @param mixed $default
-     * 
+     *
      * @return array
      */
     public function getConfig(string $key = '', $default = null)
     {
-        if ($key)
-        return $this->config[$key] ?? null;
+        if ($key) {
+            return $this->config[$key] ?? null;
+        }
 
         return $this->config;
+    }
+
+    /**
+     * Get subscribers
+     *
+     * @return array
+     */
+    public function getSubscribers()
+    {
+        return array_merge(
+            $this->getConfig('subscribers') ?: [],
+            $this->defaultSubscribers
+        );
     }
 
     /**
@@ -57,7 +77,7 @@ class Trigger
     {
         $builder = new ConfigBuilder();
 
-        $builder->withSlaveId(microtime(true))
+        $builder->withSlaveId(substr(microtime(true), -4))
             ->withHost($this->config['host'] ?? '')
             ->withPort($this->config['port'] ?? '')
             ->withUser($this->config['user'] ?? '')
@@ -94,24 +114,19 @@ class Trigger
 
     /**
      * Start
-     * 
+     *
      * @return void
      */
     public function start()
     {
-        $this->loadRouters();
+        // $this->loadRouters();
 
         $binLogStream = new MySQLReplicationFactory($this->configure());
 
-        collect($this->config['subscribers'] ?? [])
+        collect($this->getSubscribers())
             ->reject(function ($subscriber) {
                 return !is_subclass_of($subscriber, EventSubscribers::class);
             })
-            ->merge([
-                \Huangdijia\Trigger\Subscribers\Trigger::class,
-                \Huangdijia\Trigger\Subscribers\Terminate::class,
-                \Huangdijia\Trigger\Subscribers\Heartbeat::class,
-            ])
             ->unique()
             ->each(function ($subscriber) use ($binLogStream) {
                 $binLogStream->registerSubscriber(new $subscriber($this));

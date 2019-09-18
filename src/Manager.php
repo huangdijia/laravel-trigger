@@ -26,7 +26,10 @@ class Manager
 
         $config = $this->config['replications'][$name];
 
-        return $this->replications[$name] = new Trigger($config);
+        $this->replications[$name] = new Trigger($name, $config);
+        $this->replications[$name]->loadRoutes();
+
+        return $this->replications[$name];
     }
 
     public function replications()

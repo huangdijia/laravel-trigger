@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Facade;
  * @see Huangdijia\Trigger\Trigger
  * @method static \MySQLReplication\Config\Config configure()
  * @method static array getConfig()
+ * @method static array getSubscribers()
  * @method static void loadRoutes()
  * @method static void start()
  * @method static void terminate()
