@@ -108,7 +108,7 @@ class Trigger
             return;
         }
 
-        $router = $trigger = $this;
+        $trigger = $this;
 
         require $routeFile;
     }
@@ -130,7 +130,6 @@ class Trigger
             })
             ->unique()
             ->each(function ($subscriber) use ($binLogStream) {
-                dump($subscriber);
                 $binLogStream->registerSubscriber(new $subscriber($this));
             })
             ->tap(function ($subscribers) use ($binLogStream) {
