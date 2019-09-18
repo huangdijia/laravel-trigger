@@ -3,7 +3,6 @@
 namespace Huangdijia\Trigger\Subscribers;
 
 use Huangdijia\Trigger\EventSubscriber;
-use Huangdijia\Trigger\Facades\Trigger as TriggerFacade;
 use MySQLReplication\Event\DTO\EventDTO;
 
 class Trigger extends EventSubscriber
@@ -13,6 +12,6 @@ class Trigger extends EventSubscriber
      */
     protected function allEvents(EventDTO $event): void
     {
-        TriggerFacade::dispatch($event);
+        $this->trigger->dispatch($event);
     }
 }

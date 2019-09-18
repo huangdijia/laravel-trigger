@@ -8,9 +8,7 @@ class TriggerServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        if (is_file(app()->basePath('routes/trigger.php'))) {
-            include app()->basePath('routes/trigger.php');
-        }
+        //
     }
 
     public function register()
@@ -18,15 +16,9 @@ class TriggerServiceProvider extends ServiceProvider
         $this->configure();
         $this->registerCommands();
 
-        $this->app->singleton(Trigger::class, function ($app) {
-            return new Trigger;
+        $this->app->singleton('trigger.manager', function ($app) {
+            return new Manager(config('trigger'));
         });
-        $this->app->alias(Trigger::class, 'trigger');
-
-        $this->app->singleton(Bootstrap::class, function ($app) {
-            return new Bootstrap;
-        });
-        $this->app->alias(Bootstrap::class, 'trigger.bootstrap');
     }
 
     public function configure()
@@ -43,6 +35,7 @@ class TriggerServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->commands([
+                Console\InstallCommand::class,
                 Console\StartCommand::class,
                 Console\ListCommand::class,
                 Console\TerminateCommand::class,
@@ -53,10 +46,7 @@ class TriggerServiceProvider extends ServiceProvider
     public function provides()
     {
         return [
-            Trigger::class,
-            'trigger',
-            Bootstrap::class,
-            'trigger',
+            'trigger.manager',
         ];
     }
 }

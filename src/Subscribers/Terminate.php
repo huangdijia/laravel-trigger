@@ -3,7 +3,6 @@
 namespace Huangdijia\Trigger\Subscribers;
 
 use Huangdijia\Trigger\EventSubscriber;
-use Huangdijia\Trigger\Facades\Bootstrap;
 use MySQLReplication\Event\DTO\EventDTO;
 
 class Terminate extends EventSubscriber
@@ -13,7 +12,7 @@ class Terminate extends EventSubscriber
      */
     protected function allEvents(EventDTO $event): void
     {
-        if (Bootstrap::isTerminated()) {
+        if ($this->trigger->isTerminated()) {
             die('Terminated');
         }
     }

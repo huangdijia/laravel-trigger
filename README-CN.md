@@ -54,24 +54,18 @@ composer 安装
 composer require huangdijia/laravel-trigger
 ~~~
 
-复制配置 `config/trigger.php` 到 `config/`
-
-~~~bash
-cp vendor/huangdijia/laravel-trigger/config/trigger.php config/
-~~~
-
-复制路由 `routes/trigger.php` 到 `routes/`
-
-~~~bash
-cp vendor/huangdijia/laravel-trigger/routes/trigger.php routes/
-~~~
-
 编辑 `bootstrap/app.php`，注册服务及加载配置:
 
 ~~~php
 $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 ...
 $app->configure('trigger');
+~~~
+
+publish config and route
+
+~~~bash
+php artisan trigger:install [--force]
 ~~~
 
 ### 配置
@@ -89,7 +83,7 @@ TRIGGER_PASSWORD=password
 ## 启动服务
 
 ~~~bash
-php artisan trigger:start
+php artisan trigger:start [-R=xxx]
 ~~~
 
 ## 事件订阅
@@ -125,26 +119,22 @@ class ExampeSubscriber extends EventSubscriber
 
 ## 事件路由
 
-~~~php
-use Huangdijia\Trigger\Facades\Trigger;
-~~~
-
 ### 单表单事件
 
 ~~~php
-Trigger::on('database.table', 'write', function($event) { /* do something */ });
+$trigger->on('database.table', 'write', function($event) { /* do something */ });
 ~~~
 
 ### 多表多事件
 
 ~~~php
-Trigger::on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
+$trigger->on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
 ~~~
 
 ### 多事件
 
 ~~~php
-Trigger::on('database.table1,database.table2', [
+$trigger->on('database.table1,database.table2', [
     'write'  => function($event) { /* do something */ },
     'update' => function($event) { /* do something */ },
 ]);
@@ -153,8 +143,8 @@ Trigger::on('database.table1,database.table2', [
 ### 路由到操作
 
 ~~~php
-Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
-Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
+$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
+$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
 ### 路由到回调
@@ -168,8 +158,8 @@ class Foo
     }
 }
 
-Trigger::on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
-Trigger::on('database.table', 'write', ['Foo', 'bar']);
+$trigger->on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
+$trigger->on('database.table', 'write', ['Foo', 'bar']);
 ~~~
 
 ### 路由到任务
@@ -199,18 +189,18 @@ class ExampleJob extends Job
 路由
 
 ~~~php
-Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
-Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
+$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
+$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
 ## 查看事件列表
 
 ~~~bash
-php artisan trigger:list
+php artisan trigger:list [-R=xxx]
 ~~~
 
 ## 终止服务
 
 ~~~bash
-php artisan trigger:terminate
+php artisan trigger:terminate [-R=xxx]
 ~~~
