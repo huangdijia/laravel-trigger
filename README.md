@@ -54,24 +54,18 @@ install
 composer require huangdijia/laravel-trigger
 ~~~
 
-copy `config/trigger.php` to `config/`
-
-~~~bash
-cp vendor/huangdijia/laravel-trigger/config/trigger.php config/
-~~~
-
-copy `routes/trigger.php` to `routes/`
-
-~~~bash
-cp vendor/huangdijia/laravel-trigger/routes/trigger.php routes/
-~~~
-
 edit `bootstrap/app.php` add:
 
 ~~~php
 $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 ...
 $app->configure('trigger');
+~~~
+
+publish config and route
+
+~~~bash
+php artisan trigger:install [--force]
 ~~~
 
 ### Configure
@@ -89,7 +83,7 @@ TRIGGER_PASSWORD=password
 ## Usage
 
 ~~~bash
-php artisan trigger:start
+php artisan trigger:start [-R=xxx]
 ~~~
 
 ## Subscriber
@@ -125,26 +119,22 @@ more subscriber usage
 
 ## Event Route
 
-~~~php
-use Huangdijia\Trigger\Facades\Trigger;
-~~~
-
 ### common
 
 ~~~php
-Trigger::on('database.table', 'write', function($event) { /* do something */ });
+$trigger->on('database.table', 'write', function($event) { /* do something */ });
 ~~~
 
 ### multi-tables and multi-evnets
 
 ~~~php
-Trigger::on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
+$trigger->on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
 ~~~
 
 ### multi-events
 
 ~~~php
-Trigger::on('database.table1,database.table2', [
+$trigger->on('database.table1,database.table2', [
     'write'  => function($event) { /* do something */ },
     'update' => function($event) { /* do something */ },
 ]);
@@ -153,8 +143,8 @@ Trigger::on('database.table1,database.table2', [
 ### action as controller
 
 ~~~php
-Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
-Trigger::on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
+$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
+$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
 ### action as callable
@@ -168,8 +158,8 @@ class Foo
     }
 }
 
-Trigger::on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
-Trigger::on('database.table', 'write', ['Foo', 'bar']);
+$trigger->on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
+$trigger->on('database.table', 'write', ['Foo', 'bar']);
 ~~~
 
 ### action as job
@@ -199,18 +189,18 @@ class ExampleJob extends Job
 Route
 
 ~~~php
-Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
-Trigger::on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
+$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
+$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
 ## Event List
 
 ~~~bash
-php artisan trigger:list
+php artisan trigger:list [-R=xxx]
 ~~~
 
 ## Terminate
 
 ~~~bash
-php artisan trigger:terminate
+php artisan trigger:terminate [-R=xxx]
 ~~~
