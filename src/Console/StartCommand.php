@@ -2,24 +2,18 @@
 
 namespace Huangdijia\Trigger\Console;
 
-use Huangdijia\Trigger\Subscribers\Heartbeat;
-use Huangdijia\Trigger\Subscribers\Terminate;
-use Huangdijia\Trigger\Subscribers\Trigger;
-use Huangdijia\Trigger\Facades\Bootstrap;
+use Huangdijia\Trigger\Facades\Trigger;
 use Illuminate\Console\Command;
-use MySQLReplication\Config\ConfigBuilder;
-use MySQLReplication\Event\EventSubscribers;
 use MySQLReplication\Exception\MySQLReplicationException;
-use MySQLReplication\MySQLReplicationFactory;
 
 class StartCommand extends Command
 {
     /**
      * The name and signature of the console command.
      *
-     * @var string
+     * @var stringå
      */
-    protected $signature = 'trigger:start';
+    protected $signature = 'trigger:start {--R|replication=default : replication}';
     /**
      * The console command description.
      *
@@ -33,54 +27,27 @@ class StartCommand extends Command
      */
     public function handle()
     {
+        $trigger = Trigger::replication($this->option('replication'));
+
         start:
         try {
             // print informations
             $this->option('verbose') && $this->info('Configure');
             $this->option('verbose') && $this->table(['Name', 'Value'], [
-                ['Host', config('trigger.host')],
-                ['Port', config('trigger.port')],
-                ['User', config('trigger.user')],
-                ['Password', config('trigger.password')],
+                ['Host', $trigger->getConfig('host')],
+                ['Port', $trigger->getConfig('port')],
+                ['User', $trigger->getConfig('user')],
+                ['Password', $trigger->getConfig('password')],
             ]);
 
-            // create replication
-            $binLogStream = new MySQLReplicationFactory(
-                Bootstrap::startFromPosition(new ConfigBuilder(), $this)
-                    ->withSlaveId(time())
-                    ->withHost(config('trigger.host', ''))
-                    ->withPort(config('trigger.port', ''))
-                    ->withUser(config('trigger.user', ''))
-                    ->withPassword(config('trigger.password', ''))
-                    ->withDatabasesOnly(config('trigger.databases', []))
-                    ->withTablesOnly(config('trigger.tables', []))
-                    ->withHeartbeatPeriod(config('trigger.heartbeat', 3))
-                    ->build()
-            );
-
             // Register subscribers and run
-            collect(config('trigger.subscribers', []))
-                ->reject(function ($subscriber) {
-                    return !is_subclass_of($subscriber, EventSubscribers::class);
-                })
-                ->merge([Trigger::class, Terminate::class, Heartbeat::class])
-                ->unique()
-                ->each(function ($subscriber) use ($binLogStream) {
-                    $binLogStream->registerSubscriber(app($subscriber));
-                })
-                ->tap(function ($subscribers) use ($binLogStream) {
-                    $this->info('Registered Subscribers');
-                    $this->table(['Subscriber', 'Registerd'], $subscribers->transform(function($subscriber) { return [$subscriber, 'âˆš'];}));
-
-                    $this->info("\nTrigger running");
-                    $binLogStream->run();
-                });
+            $trigger->start();
 
         } catch (MySQLReplicationException $e) {
             $this->error($e->getMessage());
 
             // clear replication cache
-            Bootstrap::clear();
+            $trigger->clearCurrent();
 
             // retry
             $this->info('Retry now');

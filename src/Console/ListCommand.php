@@ -15,7 +15,7 @@ class ListCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trigger:list {--database= : Filter by database} {--table= : Filter by table} {--event= : Filter by event}';
+    protected $signature = 'trigger:list {--R|replication=default : replication} {--database= : Filter by database} {--table= : Filter by table} {--event= : Filter by event}';
     /**
      * The console command description.
      *
@@ -29,7 +29,7 @@ class ListCommand extends Command
      */
     public function handle()
     {
-        $actions = Trigger::getEvents();
+        $actions = Trigger::replication($this->option('replication'))->getEvents();
 
         collect(Arr::dot($actions))
             ->transform(function ($action, $key) use ($actions) {

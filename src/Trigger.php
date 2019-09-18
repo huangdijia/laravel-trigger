@@ -5,17 +5,191 @@ namespace Huangdijia\Trigger;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
+use MySQLReplication\BinLog\BinLogCurrent;
+use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
+use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
 
 class Trigger
 {
-    private $events = [];
+    protected $name;
+    protected $config;
+    protected $events      = [];
+    protected $subscribers = [];
+    protected $bootTime;
+    protected $replicationCacheKey;
+    protected $restartCacheKey;
 
-    public function __construct()
+    public function __construct(string $name = 'default', array $config)
     {
-        //
+        $this->name     = $name;
+        $this->config   = $config;
+        $this->bootTime = time();
+
+        $this->restartCacheKey     = sprintf('triggers:%s:restart', $name);
+        $this->replicationCacheKey = sprintf('triggers:%s:replication', $name);
+    }
+
+    /**
+     * Get config
+     * 
+     * @param string $key
+     * @param mixed $default
+     * 
+     * @return array
+     */
+    public function getConfig(string $key = '', $default = null)
+    {
+        if ($key)
+        return $this->config[$key] ?? null;
+
+        return $this->config;
+    }
+
+    /**
+     * 生成配置
+     *
+     * @return \MySQLReplication\Config\Config
+     */
+    public function configure()
+    {
+        $builder = new ConfigBuilder();
+
+        $builder->withSlaveId(microtime(true))
+            ->withHost($this->config['host'] ?? '')
+            ->withPort($this->config['port'] ?? '')
+            ->withUser($this->config['user'] ?? '')
+            ->withPassword($this->config['password'] ?? '')
+            ->withDatabasesOnly($this->config['databases'] ?? [])
+            ->withTablesOnly($this->config['tables'] ?? [])
+            ->withHeartbeatPeriod($this->config['heartbeat'] ?? 3);
+
+        if ($binLogCurrent = $this->getCurrent()) {
+            $builder->withBinLogFileName($binLogCurrent->getBinFileName())
+                ->withBinLogPosition($binLogCurrent->getBinLogPosition());
+        }
+
+        return $builder->build();
+    }
+
+    /**
+     * 加载路由
+     *
+     * @return void
+     */
+    public function loadRoutes()
+    {
+        $routeFile = $this->config['route'] ?? '';
+
+        if (!$routeFile || !is_file($routeFile)) {
+            return;
+        }
+
+        $router = $trigger = $this;
+
+        require $routeFile;
+    }
+
+    /**
+     * Start
+     * 
+     * @return void
+     */
+    public function start()
+    {
+        $this->loadRouters();
+
+        $binLogStream = new MySQLReplicationFactory($this->configure());
+
+        collect($this->config['subscribers'] ?? [])
+            ->reject(function ($subscriber) {
+                return !is_subclass_of($subscriber, EventSubscribers::class);
+            })
+            ->merge([
+                \Huangdijia\Trigger\Subscribers\Trigger::class,
+                \Huangdijia\Trigger\Subscribers\Terminate::class,
+                \Huangdijia\Trigger\Subscribers\Heartbeat::class,
+            ])
+            ->unique()
+            ->each(function ($subscriber) use ($binLogStream) {
+                $binLogStream->registerSubscriber(new $subscriber($this));
+            })
+            ->tap(function ($subscribers) use ($binLogStream) {
+                $binLogStream->run();
+            });
+    }
+
+    /**
+     * terminate
+     *
+     * @return void
+     */
+    public function terminate()
+    {
+        Cache::forever($this->restartCacheKey, time());
+    }
+
+    /**
+     * Is terminated
+     *
+     * @return boolean
+     */
+    public function isTerminated()
+    {
+        return Cache::get($this->restartCacheKey, 0) > $this->bootTime;
+    }
+
+    /**
+     * @return \MySQLReplication\BinLog\BinLogCurrent
+     */
+    public function heartbeat(EventDTO $event)
+    {
+        $this->rememberCurrent($event->getEventInfo()->getBinLogCurrent());
+    }
+
+    /**
+     * Remember Current
+     *
+     * @param \MySQLReplication\BinLog\BinLogCurrent $binLogCurrent
+     * @return void
+     */
+    public function rememberCurrent(BinLogCurrent $binLogCurrent)
+    {
+        Cache::put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
+    }
+
+    /**
+     * Get Current
+     *
+     * @return \MySQLReplication\BinLog\BinLogCurrent|null
+     */
+    public function getCurrent()
+    {
+        $binLogCache = Cache::get($this->replicationCacheKey);
+
+        if (!$binLogCache) {
+            return null;
+        }
+
+        $binLogCurrent = unserialize($binLogCache);
+
+        if (!$binLogCurrent) {
+            return null;
+        }
+
+        return $binLogCurrent;
+    }
+
+    /**
+     * Clear Current
+     *
+     * @return void
+     */
+    public function clearCurrent()
+    {
+        Cache::forget($this->replicationCacheKey);
     }
 
     /**
@@ -187,13 +361,13 @@ class Trigger
         if ($reflectionMethod->isStatic()) {
             return [
                 [$class, $method],
-                [$event]
+                [$event],
             ];
         }
 
         return [
             [app($class), $method],
-            [$event]
+            [$event],
         ];
     }
 

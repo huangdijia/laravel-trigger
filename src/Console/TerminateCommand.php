@@ -2,7 +2,7 @@
 
 namespace Huangdijia\Trigger\Console;
 
-use Huangdijia\Trigger\Facades\Bootstrap;
+use Huangdijia\Trigger\Facades\Trigger;
 use Illuminate\Console\Command;
 
 class TerminateCommand extends Command
@@ -12,7 +12,7 @@ class TerminateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trigger:terminate';
+    protected $signature = 'trigger:terminate {--R|replication=default : replication}';
     /**
      * The console command description.
      *
@@ -26,7 +26,7 @@ class TerminateCommand extends Command
      */
     public function handle()
     {
-        Bootstrap::terminate();
+        Trigger::replication($this->option('replication'))->terminate();
 
         $this->info('Broadcasting restart signal.');
     }
