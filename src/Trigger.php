@@ -3,6 +3,7 @@
 namespace Huangdijia\Trigger;
 
 use Exception;
+use Huangdijia\Trigger\EventSubscriber;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -10,7 +11,6 @@ use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
-use MySQLReplication\Event\EventSubscribers;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
@@ -19,6 +19,12 @@ class Trigger
 {
     protected $name;
     protected $config;
+    /**
+     * Cache
+     *
+     * @var \Illuminate\Support\Facades\Cache
+     */
+    protected $cache;
     protected $events = [];
     protected $bootTime;
     protected $replicationCacheKey;
@@ -37,6 +43,8 @@ class Trigger
 
         $this->restartCacheKey     = sprintf('triggers:%s:restart', $name);
         $this->replicationCacheKey = sprintf('triggers:%s:replication', $name);
+
+        $this->cache = Cache::store();
     }
 
     /**
@@ -126,7 +134,7 @@ class Trigger
 
         collect($this->getSubscribers())
             ->reject(function ($subscriber) {
-                return !is_subclass_of($subscriber, EventSubscribers::class);
+                return !is_subclass_of($subscriber, EventSubscriber::class);
             })
             ->unique()
             ->each(function ($subscriber) use ($binLogStream) {
@@ -144,7 +152,7 @@ class Trigger
      */
     public function terminate()
     {
-        Cache::forever($this->restartCacheKey, time());
+        $this->cache->forever($this->restartCacheKey, time());
     }
 
     /**
@@ -154,7 +162,7 @@ class Trigger
      */
     public function isTerminated()
     {
-        return Cache::get($this->restartCacheKey, 0) > $this->bootTime;
+        return $this->cache->get($this->restartCacheKey, 0) > $this->bootTime;
     }
 
     /**
@@ -173,7 +181,7 @@ class Trigger
      */
     public function rememberCurrent(BinLogCurrent $binLogCurrent)
     {
-        Cache::put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
+        $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
     }
 
     /**
@@ -183,7 +191,7 @@ class Trigger
      */
     public function getCurrent()
     {
-        $binLogCache = Cache::get($this->replicationCacheKey);
+        $binLogCache = $this->cache->get($this->replicationCacheKey);
 
         if (!$binLogCache) {
             return null;
@@ -205,7 +213,7 @@ class Trigger
      */
     public function clearCurrent()
     {
-        Cache::forget($this->replicationCacheKey);
+        $this->cache->forget($this->replicationCacheKey);
     }
 
     /**
@@ -238,7 +246,7 @@ class Trigger
         // default database
         $table = ltrim($table, '.');
         if (false === strpos($table, '.')) { // table to database.table
-            $table = sprintf('%s.%s', (config('trigger.databases')[0] ?? '*'), $table);
+            $table = sprintf('%s.%s', ($this->config['databases'][0] ?? '*'), $table);
         } elseif (substr($table, -1) == '.') { // database. to database.*
             $table .= '*';
         }
