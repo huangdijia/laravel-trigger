@@ -19,6 +19,7 @@ class Trigger
 {
     protected $name;
     protected $config;
+
     /**
      * Cache
      *
@@ -78,7 +79,7 @@ class Trigger
     }
 
     /**
-     * 生成配置
+     * Builder config
      *
      * @return \MySQLReplication\Config\Config
      */
@@ -104,7 +105,7 @@ class Trigger
     }
 
     /**
-     * 加载路由
+     * Load routes of trigger
      *
      * @return void
      */
@@ -128,8 +129,6 @@ class Trigger
      */
     public function start()
     {
-        // $this->loadRouters();
-
         $binLogStream = new MySQLReplicationFactory($this->configure());
 
         collect($this->getSubscribers())
@@ -146,7 +145,7 @@ class Trigger
     }
 
     /**
-     * terminate
+     * Terminate
      *
      * @return void
      */
@@ -166,6 +165,8 @@ class Trigger
     }
 
     /**
+     * Remember current by heartbeat
+     *
      * @return \MySQLReplication\BinLog\BinLogCurrent
      */
     public function heartbeat(EventDTO $event)
@@ -174,7 +175,7 @@ class Trigger
     }
 
     /**
-     * Remember Current
+     * Remember current
      *
      * @param \MySQLReplication\BinLog\BinLogCurrent $binLogCurrent
      * @return void
@@ -185,7 +186,7 @@ class Trigger
     }
 
     /**
-     * Get Current
+     * Get current
      *
      * @return \MySQLReplication\BinLog\BinLogCurrent|null
      */
@@ -207,7 +208,7 @@ class Trigger
     }
 
     /**
-     * Clear Current
+     * Clear current
      *
      * @return void
      */
@@ -217,7 +218,7 @@ class Trigger
     }
 
     /**
-     * 绑定事件
+     * Bind events
      *
      * @param string $table
      * @param string|array $eventType
@@ -293,7 +294,7 @@ class Trigger
     }
 
     /**
-     * 执行事件
+     * Fire events
      *
      * @param \MySQLReplication\Event\DTO\EventDTO $event
      * @return void
@@ -320,7 +321,7 @@ class Trigger
     }
 
     /**
-     * 执行事件
+     * Fire evnets
      *
      * @param mixed $events
      * @param \MySQLReplication\Event\DTO\EventDTO $event
@@ -338,7 +339,7 @@ class Trigger
     }
 
     /**
-     * 解析操作
+     * Parse action
      *
      * @param mixed $action
      * @return array [callable $callback, array $parameters]
@@ -396,7 +397,7 @@ class Trigger
     }
 
     /**
-     * 执行操作
+     * Execute action
      *
      * @param callable $action
      * @param array $parameters
@@ -408,7 +409,7 @@ class Trigger
     }
 
     /**
-     * 获取全部事件
+     * Get all events
      *
      * @return array
      */

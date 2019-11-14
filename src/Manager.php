@@ -12,6 +12,12 @@ class Manager
         $this->config = $config;
     }
 
+    /**
+     * Create new replication
+     *
+     * @param string|null $name
+     * @return \Huangdijia\Trigger\Trigger
+     */
     public function replication(?string $name = null)
     {
         $name = $name ?? $this->config['default'] ?? 'default';
@@ -32,11 +38,23 @@ class Manager
         return $this->replications[$name];
     }
 
+    /**
+     * Get all replications
+     *
+     * @return array
+     */
     public function replications()
     {
         return $this->replications;
     }
 
+    /**
+     * call
+     *
+     * @param string $method
+     * @param array $parameters
+     * @return mixed
+     */
     public function __call($method, $parameters)
     {
         return $this->replication()->{$method}(...$parameters);
