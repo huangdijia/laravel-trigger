@@ -75,6 +75,12 @@ class ListCommand extends Command
             });
     }
 
+    /**
+     * Transform action to string
+     *
+     * @param Closure|object|array|string $action
+     * @return string
+     */
     public function transformActionToString($action)
     {
         if ($action instanceof Closure) {
