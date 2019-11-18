@@ -204,3 +204,7 @@ php artisan trigger:list [-R=xxx]
 ~~~bash
 php artisan trigger:terminate [-R=xxx]
 ~~~
+
+## 鸣谢
+
+[JetBrains](https://www.jetbrains.com/?from=huangdijia/laravel-trigger)
