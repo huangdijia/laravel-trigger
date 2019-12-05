@@ -2,6 +2,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
+[![GitHub license](https://img.shields.io/github/license/huangdijia/laravel-trigger)](https://github.com/huangdijia/laravel-trigger)
 
 Subscribe MySQL events like jQuery, base on [php-mysql-replication](https://github.com/krowinski/php-mysql-replication)
 
