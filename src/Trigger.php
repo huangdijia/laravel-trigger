@@ -49,17 +49,27 @@ class Trigger
     }
 
     /**
+     * Auto detect databases and tables
+     * @return void 
+     */
+    public function detectDatabasesAndTables()
+    {
+        $this->config['databases'] = $this->getDatabases();
+        $this->config['tables']    = $this->getTables();
+    }
+
+    /**
      * Get config
      *
      * @param string $key
      * @param mixed $default
      *
-     * @return array
+     * @return array|mixed
      */
     public function getConfig(string $key = '', $default = null)
     {
         if ($key) {
-            return $this->config[$key] ?? null;
+            return $this->config[$key] ?? $default;
         }
 
         return $this->config;
@@ -88,13 +98,13 @@ class Trigger
         $builder = new ConfigBuilder();
 
         $builder->withSlaveId(time())
-            ->withHost($this->config['host'] ?? '')
-            ->withPort($this->config['port'] ?? '')
-            ->withUser($this->config['user'] ?? '')
-            ->withPassword($this->config['password'] ?? '')
-            ->withDatabasesOnly($this->config['databases'] ?? [])
-            ->withTablesOnly($this->config['tables'] ?? [])
-            ->withHeartbeatPeriod($this->config['heartbeat'] ?? 3);
+            ->withHost($this->getConfig('host'))
+            ->withPort($this->getConfig('port'))
+            ->withUser($this->getConfig('user'))
+            ->withPassword($this->getConfig('password'))
+            ->withDatabasesOnly($this->getConfig('databases'))
+            ->withTablesOnly($this->getConfig('tables'))
+            ->withHeartbeatPeriod($this->getConfig('heartbeat') ?: 3);
 
         if ($binLogCurrent = $this->getCurrent()) {
             $builder->withBinLogFileName($binLogCurrent->getBinFileName())
@@ -415,6 +425,32 @@ class Trigger
      */
     public function getEvents()
     {
-        return $this->events;
+        return $this->events ?: [];
+    }
+
+    /**
+     * Get all databases
+     *
+     * @return array
+     */
+    public function getDatabases()
+    {
+        return array_keys($this->getEvents());
+    }
+
+    /**
+     * Get all tables
+     */
+    public function getTables()
+    {
+        $tables = [];
+
+        collect($this->getEvents())->each(function ($listeners, $database) use (&$tables) {
+            if (is_array($listeners) && !empty($listeners)) {
+                $tables = array_merge($tables, array_keys($listeners));
+            }
+        });
+
+        return $tables;
     }
 }
