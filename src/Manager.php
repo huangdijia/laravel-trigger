@@ -35,6 +35,10 @@ class Manager
         $this->replications[$name] = new Trigger($name, $config);
         $this->replications[$name]->loadRoutes();
 
+        if ($this->replications[$name]->getConfig('detect')) {
+            $this->replications[$name]->detectDatabasesAndTables();
+        }
+
         return $this->replications[$name];
     }
 
