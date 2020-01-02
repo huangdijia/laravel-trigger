@@ -36,15 +36,29 @@ class StartCommand extends Command
                 $this->table(
                     ['Name', 'Value'],
                     collect($trigger->getConfig())
-                    ->merge(['bootat' => time()])
-                    ->transform(function ($item, $key) {
-                        if (!is_scalar($item)) {
-                            $item = json_encode($item);
-                        }
+                        ->merge(['bootat' => date('Y-m-d H:i:s')])
+                        ->transform(function ($item, $key) {
+                            if (!is_scalar($item)) {
+                                $item = json_encode($item);
+                            }
 
-                        return [ucfirst($key), $item];
-                    })
+                            return [ucfirst($key), $item];
+                        })
                 );
+
+                $binLogCurrent = $trigger->getCurrent();
+
+                if (!is_null($binLogCurrent)) {
+                    $this->info('BinLog');
+
+                    $this->table(
+                        ['Name', 'Value'],
+                        [
+                            ['BinLogPosition', $binLogCurrent->getBinLogPosition()],
+                            ['BinFileName', $binLogCurrent->getBinFileName()],
+                        ]
+                    );
+                }
 
                 $this->info('Subscribers');
                 $this->table(

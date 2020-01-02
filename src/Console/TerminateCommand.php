@@ -32,7 +32,7 @@ class TerminateCommand extends Command
         $this->info('Broadcasting restart signal.');
 
         if ($this->option('reset')) {
-            $trigger->clearCurrent();
+            $trigger->reset();
             $this->info('Replication position reseted.');
         }
 
