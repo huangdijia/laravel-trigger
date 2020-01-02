@@ -29,6 +29,7 @@ class Trigger
     protected $events = [];
     protected $bootTime;
     protected $replicationCacheKey;
+    protected $resetCacheKey;
     protected $restartCacheKey;
     protected $defaultSubscribers = [
         \Huangdijia\Trigger\Subscribers\Trigger::class,
@@ -42,6 +43,7 @@ class Trigger
         $this->config   = $config;
         $this->bootTime = time();
 
+        $this->resetCacheKey       = sprintf('triggers:%s:reset', $name);
         $this->restartCacheKey     = sprintf('triggers:%s:restart', $name);
         $this->replicationCacheKey = sprintf('triggers:%s:replication', $name);
 
@@ -50,7 +52,7 @@ class Trigger
 
     /**
      * Auto detect databases and tables
-     * @return void 
+     * @return void
      */
     public function detectDatabasesAndTables()
     {
@@ -152,6 +154,24 @@ class Trigger
             ->tap(function ($subscribers) use ($binLogStream) {
                 $binLogStream->run();
             });
+    }
+
+    /**
+     * Reset
+     * @return void 
+     */
+    public function reset()
+    {
+        $this->cache->forever($this->resetCacheKey, time());
+    }
+
+    /**
+     * IsReseted
+     * @return bool 
+     */
+    public function isReseted()
+    {
+        return $this->cache->get($this->resetCacheKey, 0) > $this->bootTime;
     }
 
     /**

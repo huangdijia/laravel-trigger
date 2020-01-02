@@ -12,6 +12,10 @@ class Terminate extends EventSubscriber
      */
     protected function allEvents(EventDTO $event): void
     {
+        if ($this->trigger->isReseted()) {
+            $this->trigger->clearCurrent();
+        }
+
         if ($this->trigger->isTerminated()) {
             die('Terminated');
         }
