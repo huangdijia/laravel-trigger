@@ -12,7 +12,7 @@ class TerminateCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trigger:terminate {--R|replication=default : replication}';
+    protected $signature = 'trigger:terminate {--R|replication=default : replication} {--reset : reset replication position}';
     /**
      * The console command description.
      *
@@ -26,8 +26,15 @@ class TerminateCommand extends Command
      */
     public function handle()
     {
-        Trigger::replication($this->option('replication'))->terminate();
+        $trigger = Trigger::replication($this->option('replication'));
 
+        $trigger->terminate();
         $this->info('Broadcasting restart signal.');
+
+        if ($this->option('reset')) {
+            $trigger->reset();
+            $this->info('Replication position reseted.');
+        }
+
     }
 }
