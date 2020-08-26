@@ -9,21 +9,18 @@
     ],
     "homepage": "https://github.com/huangdijia/laravel-trigger",
     "license": "MIT",
-    "authors": [
-        {
-            "name": "huangdijia",
-            "email": "huangdijia@gmail.com"
-        }
-    ],
+    "authors": [{
+        "name": "huangdijia",
+        "email": "huangdijia@gmail.com"
+    }],
     "require": {
         "php": ">=7.1.0",
-        "illuminate/support": "^5.7|^5.8|^6.0|^7.0",
-        "illuminate/console": "^5.7|^5.8|^6.0|^7.0",
+        "illuminate/support": "^5.7|^6.0|^7.0|^8.0",
+        "illuminate/console": "^5.7|^6.0|^7.0|^8.0",
         "krowinski/php-mysql-replication": "^6.0"
     },
     "autoload": {
-        "files": [
-        ],
+        "files": [],
         "psr-4": {
             "Huangdijia\\Trigger\\": "src/"
         }
