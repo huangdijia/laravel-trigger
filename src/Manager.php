@@ -2,9 +2,19 @@
 
 namespace Huangdijia\Trigger;
 
+use InvalidArgumentException;
+
 class Manager
 {
+    /**
+     * Configs
+     * @var array
+     */
     protected $config;
+    /**
+     * Replications
+     * @var array
+     */
     protected $replications;
 
     public function __construct(array $config = [])
@@ -22,21 +32,22 @@ class Manager
     {
         $name = $name ?? $this->config['default'] ?? 'default';
 
-        if (isset($this->replications[$name])) {
-            return $this->replications[$name];
-        }
+        if (!isset($this->replications[$name])) {
 
-        if (!isset($this->config['replications'][$name])) {
-            throw new \Exception("Config 'trigger.replications.{$name}' is undefined", 1);
-        }
+            throw_if(
+                !isset($this->config['replications'][$name]),
+                new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1)
+            );
 
-        $config = $this->config['replications'][$name];
+            $config = $this->config['replications'][$name];
 
-        $this->replications[$name] = new Trigger($name, $config);
-        $this->replications[$name]->loadRoutes();
+            $this->replications[$name] = tap(new Trigger($name, $config), function ($trigger) {
+                $trigger->loadRoutes();
 
-        if ($this->replications[$name]->getConfig('detect')) {
-            $this->replications[$name]->detectDatabasesAndTables();
+                if ($trigger->getConfig('detect')) {
+                    $trigger->detectDatabasesAndTables();
+                }
+            });
         }
 
         return $this->replications[$name];
