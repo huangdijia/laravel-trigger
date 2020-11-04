@@ -92,28 +92,27 @@ class Trigger
 
     /**
      * Builder config
-     *
+     * @param bool $keepup
      * @return \MySQLReplication\Config\Config
      */
-    public function configure()
+    public function configure($keepup = true)
     {
-        $builder = new ConfigBuilder();
+        return tap(new ConfigBuilder(), function ($builder) use ($keepup) {
+            /** @var ConfigBuilder $builder */
+            $builder->withSlaveId(time())
+                ->withHost($this->getConfig('host'))
+                ->withPort($this->getConfig('port'))
+                ->withUser($this->getConfig('user'))
+                ->withPassword($this->getConfig('password'))
+                ->withDatabasesOnly($this->getConfig('databases'))
+                ->withTablesOnly($this->getConfig('tables'))
+                ->withHeartbeatPeriod($this->getConfig('heartbeat') ?: 3);
 
-        $builder->withSlaveId(time())
-            ->withHost($this->getConfig('host'))
-            ->withPort($this->getConfig('port'))
-            ->withUser($this->getConfig('user'))
-            ->withPassword($this->getConfig('password'))
-            ->withDatabasesOnly($this->getConfig('databases'))
-            ->withTablesOnly($this->getConfig('tables'))
-            ->withHeartbeatPeriod($this->getConfig('heartbeat') ?: 3);
-
-        if ($binLogCurrent = $this->getCurrent()) {
-            $builder->withBinLogFileName($binLogCurrent->getBinFileName())
-                ->withBinLogPosition($binLogCurrent->getBinLogPosition());
-        }
-
-        return $builder->build();
+            if ($keepup && $binLogCurrent = $this->getCurrent()) {
+                $builder->withBinLogFileName($binLogCurrent->getBinFileName())
+                    ->withBinLogPosition($binLogCurrent->getBinLogPosition());
+            }
+        })->build();
     }
 
     /**
@@ -136,24 +135,22 @@ class Trigger
 
     /**
      * Start
-     *
+     * @param bool $keepup
      * @return void
      */
-    public function start()
+    public function start($keepup = true)
     {
-        $binLogStream = new MySQLReplicationFactory($this->configure());
-
-        collect($this->getSubscribers())
-            ->reject(function ($subscriber) {
-                return !is_subclass_of($subscriber, EventSubscriber::class);
-            })
-            ->unique()
-            ->each(function ($subscriber) use ($binLogStream) {
-                $binLogStream->registerSubscriber(new $subscriber($this));
-            })
-            ->tap(function ($subscribers) use ($binLogStream) {
-                $binLogStream->run();
-            });
+        tap(new MySQLReplicationFactory($this->configure($keepup)), function ($binLogStream) {
+            /** @var MySQLReplicationFactory $binLogStream */
+            collect($this->getSubscribers())
+                ->reject(function ($subscriber) {
+                    return !is_subclass_of($subscriber, EventSubscriber::class);
+                })
+                ->unique()
+                ->each(function ($subscriber) use ($binLogStream) {
+                    $binLogStream->registerSubscriber(new $subscriber($this));
+                });
+        })->run();
     }
 
     /**
@@ -197,7 +194,7 @@ class Trigger
     /**
      * Remember current by heartbeat
      *
-     * @return \MySQLReplication\BinLog\BinLogCurrent
+     * @return void
      */
     public function heartbeat(EventDTO $event)
     {
@@ -222,19 +219,13 @@ class Trigger
      */
     public function getCurrent()
     {
-        $binLogCache = $this->cache->get($this->replicationCacheKey);
+        return with($this->cache->get($this->replicationCacheKey), function ($cache) {
+            if (!$cache) {
+                return null;
+            }
 
-        if (!$binLogCache) {
-            return null;
-        }
-
-        $binLogCurrent = unserialize($binLogCache);
-
-        if (!$binLogCurrent) {
-            return null;
-        }
-
-        return $binLogCurrent;
+            return unserialize($cache) ?: null;
+        });
     }
 
     /**
@@ -335,6 +326,7 @@ class Trigger
         $eventType = $event->getType();
 
         if (is_callable([$event, 'getTableMap'])) {
+            /** @var \MySQLReplication\Event\DTO\RowsDTO $event */
             $database = $event->getTableMap()->getDatabase();
             $table    = $event->getTableMap()->getTable();
             $events[] = sprintf('%s.%s.%s', $database, $table, $eventType);
@@ -463,6 +455,7 @@ class Trigger
 
     /**
      * Get all tables
+     * @return array
      */
     public function getTables()
     {
