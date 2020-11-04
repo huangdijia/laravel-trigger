@@ -13,7 +13,7 @@ class StartCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'trigger:start {--R|replication=default : replication}';
+    protected $signature = 'trigger:start {--R|replication=default : replication} {--reset}';
     /**
      * The console command description.
      *
@@ -27,6 +27,7 @@ class StartCommand extends Command
      */
     public function handle()
     {
+        $keepup  = $this->option('reset') ? false : true;
         $trigger = Trigger::replication($this->option('replication'));
 
         start:
@@ -48,7 +49,7 @@ class StartCommand extends Command
 
                 $binLogCurrent = $trigger->getCurrent();
 
-                if (!is_null($binLogCurrent)) {
+                if ($keepup && !is_null($binLogCurrent)) {
                     $this->info('BinLog');
 
                     $this->table(
@@ -70,7 +71,7 @@ class StartCommand extends Command
                 );
             }
 
-            $trigger->start();
+            $trigger->start($keepup);
 
         } catch (MySQLReplicationException $e) {
             $this->error($e->getMessage());
