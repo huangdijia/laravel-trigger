@@ -17,7 +17,7 @@
         "php": ">=7.1.0",
         "illuminate/support": "^5.7|^6.0|^7.0|^8.0",
         "illuminate/console": "^5.7|^6.0|^7.0|^8.0",
-        "krowinski/php-mysql-replication": "^6.0|^7.0"
+        "krowinski/php-mysql-replication": "^7.0"
     },
     "autoload": {
         "files": [],
