@@ -2,9 +2,9 @@
 
 namespace Huangdijia\Trigger;
 
-use Illuminate\Container\Container;
 use Exception;
 use Huangdijia\Trigger\EventSubscriber;
+use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
@@ -18,7 +18,14 @@ use ReflectionMethod;
 
 class Trigger
 {
+    /**
+     * @var string
+     */
     protected $name;
+
+    /**
+     * @var array
+     */
     protected $config;
 
     /**

@@ -13,7 +13,7 @@ class Manager
     protected $config;
     /**
      * Replications
-     * @var array
+     * @var Trigger[]
      */
     protected $replications;
 
@@ -33,21 +33,23 @@ class Manager
         $name = $name ?? $this->config['default'] ?? 'default';
 
         if (!isset($this->replications[$name])) {
-            throw_if(
-                !isset($this->config['replications'][$name]),
-                new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1)
-            );
+            if (!isset($this->config['replications'][$name])) {
+                new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1);
+            }
 
+            // load config
             $config = $this->config['replications'][$name];
 
-            $this->replications[$name] = tap(new Trigger($name, $config), function ($trigger) {
-                /** @var Trigger $trigger */
-                $trigger->loadRoutes();
+            /** @var Trigger[] */
+            $this->replications[$name] = new Trigger($name, $config);
 
-                if ($trigger->getConfig('detect')) {
-                    $trigger->detectDatabasesAndTables();
-                }
-            });
+            // load routes
+            $this->replications[$name]->loadRoutes();
+
+            // auto detect
+            if ($this->replications[$name]->getConfig('detect')) {
+                $this->replications[$name]->detectDatabasesAndTables();
+            }
         }
 
         return $this->replications[$name];
