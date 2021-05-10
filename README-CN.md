@@ -37,7 +37,7 @@ GRANT SELECT ON `dbName`.* TO 'user'@'host';
 composer 安装
 
 ~~~bash
-composer require huangdijia/laravel-trigger
+composer require "huangdijia/laravel-trigger:^2.0"
 ~~~
 
 发布配置
@@ -51,7 +51,7 @@ php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider
 composer 安装
 
 ~~~bash
-composer require huangdijia/laravel-trigger
+composer require "huangdijia/laravel-trigger:^2.0"
 ~~~
 
 编辑 `bootstrap/app.php`，注册服务及加载配置:

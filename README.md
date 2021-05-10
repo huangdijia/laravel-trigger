@@ -38,7 +38,7 @@ GRANT SELECT ON `dbName`.* TO 'user'@'host';
 install
 
 ~~~bash
-composer require huangdijia/laravel-trigger
+composer require "huangdijia/laravel-trigger:^2.0"
 ~~~
 
 publish config
@@ -52,7 +52,7 @@ php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider
 install
 
 ~~~bash
-composer require huangdijia/laravel-trigger
+composer require "huangdijia/laravel-trigger:^2.0"
 ~~~
 
 edit `bootstrap/app.php` add:
