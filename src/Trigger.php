@@ -2,6 +2,7 @@
 
 namespace Huangdijia\Trigger;
 
+use Illuminate\Container\Container;
 use Exception;
 use Huangdijia\Trigger\EventSubscriber;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -413,7 +414,7 @@ class Trigger
         }
 
         return [
-            [app($class), $method],
+            [Container::getInstance()->make($class), $method],
             [$event],
         ];
     }

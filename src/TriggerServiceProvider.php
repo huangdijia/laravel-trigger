@@ -16,8 +16,8 @@ class TriggerServiceProvider extends ServiceProvider
         $this->configure();
         $this->registerCommands();
 
-        $this->app->singleton('trigger.manager', function ($app) {
-            return new Manager(config('trigger'));
+        $this->app->bind('trigger.manager', function ($app) {
+            return new Manager($app->make('config')->get('trigger'));
         });
     }
 

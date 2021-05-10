@@ -26,14 +26,13 @@ class Manager
      * Create new replication
      *
      * @param string|null $name
-     * @return \Huangdijia\Trigger\Trigger
+     * @return Trigger
      */
     public function replication(?string $name = null)
     {
         $name = $name ?? $this->config['default'] ?? 'default';
 
         if (!isset($this->replications[$name])) {
-
             throw_if(
                 !isset($this->config['replications'][$name]),
                 new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1)
@@ -42,6 +41,7 @@ class Manager
             $config = $this->config['replications'][$name];
 
             $this->replications[$name] = tap(new Trigger($name, $config), function ($trigger) {
+                /** @var Trigger $trigger */
                 $trigger->loadRoutes();
 
                 if ($trigger->getConfig('detect')) {
