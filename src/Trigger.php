@@ -1,9 +1,16 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger;
 
 use Exception;
-use Huangdijia\Trigger\EventSubscriber;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
@@ -19,59 +26,51 @@ use ReflectionMethod;
 class Trigger
 {
     /**
-     * @var string
-     */
-    protected $name;
-
-    /**
-     * @var array
-     */
-    protected $config;
-
-    /**
-     * Cache
+     * Cache.
      *
      * @var \Illuminate\Support\Facades\Cache
      */
     protected $cache;
+
     protected $events = [];
+
     protected $bootTime;
+
     protected $replicationCacheKey;
+
     protected $resetCacheKey;
+
     protected $restartCacheKey;
+
     protected $defaultSubscribers = [
         \Huangdijia\Trigger\Subscribers\Trigger::class,
         \Huangdijia\Trigger\Subscribers\Terminate::class,
         \Huangdijia\Trigger\Subscribers\Heartbeat::class,
     ];
 
-    public function __construct(string $name = 'default', array $config)
+    public function __construct(protected string $name = 'default', protected array $config = [])
     {
-        $this->name     = $name;
-        $this->config   = $config;
         $this->bootTime = time();
 
-        $this->resetCacheKey       = sprintf('triggers:%s:reset', $name);
-        $this->restartCacheKey     = sprintf('triggers:%s:restart', $name);
+        $this->resetCacheKey = sprintf('triggers:%s:reset', $name);
+        $this->restartCacheKey = sprintf('triggers:%s:restart', $name);
         $this->replicationCacheKey = sprintf('triggers:%s:replication', $name);
 
         $this->cache = Cache::store();
     }
 
     /**
-     * Auto detect databases and tables
-     * @return void
+     * Auto detect databases and tables.
      */
     public function detectDatabasesAndTables()
     {
         $this->config['databases'] = $this->getDatabases();
-        $this->config['tables']    = $this->getTables();
+        $this->config['tables'] = $this->getTables();
     }
 
     /**
-     * Get config
+     * Get config.
      *
-     * @param string $key
      * @param mixed $default
      *
      * @return array|mixed
@@ -86,7 +85,7 @@ class Trigger
     }
 
     /**
-     * Get subscribers
+     * Get subscribers.
      *
      * @return array
      */
@@ -99,14 +98,14 @@ class Trigger
     }
 
     /**
-     * Builder config
+     * Builder config.
      * @param bool $keepup
      * @return \MySQLReplication\Config\Config
      */
     public function configure($keepup = true)
     {
         return tap(new ConfigBuilder(), function ($builder) use ($keepup) {
-            /** @var ConfigBuilder $builder */
+            /* @var ConfigBuilder $builder */
             $builder->withSlaveId(time())
                 ->withHost($this->getConfig('host'))
                 ->withPort($this->getConfig('port'))
@@ -124,15 +123,13 @@ class Trigger
     }
 
     /**
-     * Load routes of trigger
-     *
-     * @return void
+     * Load routes of trigger.
      */
     public function loadRoutes()
     {
         $routeFile = $this->config['route'] ?? '';
 
-        if (!$routeFile || !is_file($routeFile)) {
+        if (! $routeFile || ! is_file($routeFile)) {
             return;
         }
 
@@ -142,18 +139,15 @@ class Trigger
     }
 
     /**
-     * Start
+     * Start.
      * @param bool $keepup
-     * @return void
      */
     public function start($keepup = true)
     {
         tap(new MySQLReplicationFactory($this->configure($keepup)), function ($binLogStream) {
-            /** @var MySQLReplicationFactory $binLogStream */
+            /* @var MySQLReplicationFactory $binLogStream */
             collect($this->getSubscribers())
-                ->reject(function ($subscriber) {
-                    return !is_subclass_of($subscriber, EventSubscriber::class);
-                })
+                ->reject(fn($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
                 ->unique()
                 ->each(function ($subscriber) use ($binLogStream) {
                     $binLogStream->registerSubscriber(new $subscriber($this));
@@ -162,8 +156,7 @@ class Trigger
     }
 
     /**
-     * Reset
-     * @return void
+     * Reset.
      */
     public function reset()
     {
@@ -171,7 +164,7 @@ class Trigger
     }
 
     /**
-     * IsReseted
+     * IsReseted.
      * @return bool
      */
     public function isReseted()
@@ -180,9 +173,7 @@ class Trigger
     }
 
     /**
-     * Terminate
-     *
-     * @return void
+     * Terminate.
      */
     public function terminate()
     {
@@ -190,9 +181,9 @@ class Trigger
     }
 
     /**
-     * Is terminated
+     * Is terminated.
      *
-     * @return boolean
+     * @return bool
      */
     public function isTerminated()
     {
@@ -200,9 +191,7 @@ class Trigger
     }
 
     /**
-     * Remember current by heartbeat
-     *
-     * @return void
+     * Remember current by heartbeat.
      */
     public function heartbeat(EventDTO $event)
     {
@@ -210,10 +199,7 @@ class Trigger
     }
 
     /**
-     * Remember current
-     *
-     * @param \MySQLReplication\BinLog\BinLogCurrent $binLogCurrent
-     * @return void
+     * Remember current.
      */
     public function rememberCurrent(BinLogCurrent $binLogCurrent)
     {
@@ -221,25 +207,17 @@ class Trigger
     }
 
     /**
-     * Get current
+     * Get current.
      *
-     * @return \MySQLReplication\BinLog\BinLogCurrent|null
+     * @return null|\MySQLReplication\BinLog\BinLogCurrent
      */
     public function getCurrent()
     {
-        return with($this->cache->get($this->replicationCacheKey), function ($cache) {
-            if (!$cache) {
-                return null;
-            }
-
-            return unserialize($cache) ?: null;
-        });
+        return with($this->cache->get($this->replicationCacheKey));
     }
 
     /**
-     * Clear current
-     *
-     * @return void
+     * Clear current.
      */
     public function clearCurrent()
     {
@@ -247,20 +225,15 @@ class Trigger
     }
 
     /**
-     * Bind events
+     * Bind events.
      *
-     * @param string $table
-     * @param string|array $eventType
-     * @param Closure|array|string|callable $action
-     * @return void
+     * @param array|callable|Closure|string $action
      */
-    public function on(string $table, $eventType, $action = null)
+    public function on(string $table, array|string $eventType, array|callable|\Closure|string $action = null)
     {
         // table as db.tb1,db.tb2,...
-        if (false !== strpos($table, ',')) {
-            collect(explode(',', $table))->transform(function ($table) {
-                return trim($table);
-            })
+        if (str_contains($table, ',')) {
+            collect(explode(',', $table))->transform(fn($table) => trim($table))
                 ->filter()
                 ->each(function ($table) use ($eventType, $action) {
                     $this->on($table, $eventType, $action);
@@ -275,7 +248,7 @@ class Trigger
 
         // default database
         $table = ltrim($table, '.');
-        if (false === strpos($table, '.')) { // table to database.table
+        if (!str_contains($table, '.')) { // table to database.table
             $table = sprintf('%s.%s', ($this->config['databases'][0] ?? '*'), $table);
         } elseif (substr($table, -1) == '.') { // database. to database.*
             $table .= '*';
@@ -296,11 +269,9 @@ class Trigger
             $eventType = strtolower($eventType);
 
             // eventType as write,update,delete...
-            if (false !== strpos($eventType, ',')) {
+            if (str_contains($eventType, ',')) {
                 collect(explode(',', $eventType))
-                    ->transform(function ($eventType) {
-                        return trim($eventType);
-                    })
+                    ->transform(fn($eventType) => trim($eventType))
                     ->filter()
                     ->each(function ($eventType) use ($table, $action) {
                         $this->on($table, $eventType, $action);
@@ -313,49 +284,40 @@ class Trigger
         $key = sprintf('%s.%s', $table, $eventType);
 
         // append to actions
-        $actions   = Arr::get($this->events, $key) ?: [];
+        $actions = Arr::get($this->events, $key) ?: [];
         $actions[] = $action;
 
         // restore to array
         Arr::set($this->events, $key, $actions);
-
-        return;
     }
 
     /**
-     * Fire events
-     *
-     * @param \MySQLReplication\Event\DTO\EventDTO $event
-     * @return void
+     * Fire events.
      */
     public function dispatch(EventDTO $event)
     {
-        $events    = [];
+        $events = [];
         $eventType = $event->getType();
 
         if (is_callable([$event, 'getTableMap'])) {
             /** @var \MySQLReplication\Event\DTO\RowsDTO $event */
             $database = $event->getTableMap()->getDatabase();
-            $table    = $event->getTableMap()->getTable();
+            $table = $event->getTableMap()->getTable();
             $events[] = sprintf('%s.%s.%s', $database, $table, $eventType);
             $events[] = sprintf('%s.%s.%s', $database, $table, '*');
             $events[] = sprintf('%s.%s.%s', $database, '*', $eventType);
         }
 
         $events[] = "*.*.{$eventType}";
-        $events[] = "*.*.*";
+        $events[] = '*.*.*';
 
         $this->fire($events, $event);
-
-        return;
     }
 
     /**
-     * Fire evnets
+     * Fire evnets.
      *
      * @param mixed $events
-     * @param \MySQLReplication\Event\DTO\EventDTO $event
-     * @return void
      */
     public function fire($events, EventDTO $event = null)
     {
@@ -364,14 +326,53 @@ class Trigger
                 $this->call(...$this->parseAction($action, $event));
             });
         });
-
-        return;
     }
 
     /**
-     * Parse action
+     * Get all events.
+     *
+     * @return array
+     */
+    public function getEvents()
+    {
+        return $this->events ?: [];
+    }
+
+    /**
+     * Get all databases.
+     *
+     * @return array
+     */
+    public function getDatabases()
+    {
+        $databases = array_keys($this->getEvents());
+        $databases = array_filter($databases, fn($item) => $item != '*');
+
+        return array_values($databases);
+    }
+
+    /**
+     * Get all tables.
+     * @return array
+     */
+    public function getTables()
+    {
+        $tables = [];
+
+        collect($this->getEvents())->each(function ($listeners, $database) use (&$tables) {
+            if (is_array($listeners) && ! empty($listeners)) {
+                $tables = [...$tables, ...array_filter(array_keys($listeners), fn($item) => $item != '*')];
+            }
+        });
+
+        return $tables;
+    }
+
+    /**
+     * Parse action.
      *
      * @param mixed $action
+     * @param mixed $event
      * @return array [callable $callback, array $parameters]
      */
     private function parseAction($action, $event)
@@ -383,10 +384,10 @@ class Trigger
 
         // parse class from action
         $action = explode('@', $action);
-        $class  = $action[0];
+        $class = $action[0];
 
         // class is not exists
-        if (!class_exists($class)) {
+        if (! class_exists($class)) {
             throw new Exception("class '{$class}' is not exists", 1);
         }
 
@@ -402,13 +403,13 @@ class Trigger
         $method = $action[1] ?? 'handle';
 
         // check is method callable
-        if (!is_callable([$class, $method])) {
+        if (! is_callable([$class, $method])) {
             throw new Exception("{$class}::{$method}() is not callable or not exists", 1);
         }
 
         $reflectionMethod = new ReflectionMethod($class, $method);
 
-        if (!$reflectionMethod->isPublic()) {
+        if (! $reflectionMethod->isPublic()) {
             throw new ReflectionException("{$class}::{$method}() is not public", 1);
         }
 
@@ -427,54 +428,12 @@ class Trigger
     }
 
     /**
-     * Execute action
+     * Execute action.
      *
-     * @param callable $action
-     * @param array $parameters
      * @return mixed
      */
     private function call(callable $action, array $parameters = [])
     {
         return call_user_func_array($action, $parameters);
-    }
-
-    /**
-     * Get all events
-     *
-     * @return array
-     */
-    public function getEvents()
-    {
-        return $this->events ?: [];
-    }
-
-    /**
-     * Get all databases
-     *
-     * @return array
-     */
-    public function getDatabases()
-    {
-        $databases = array_keys($this->getEvents());
-        $databases = array_filter($databases, function ($item) {return $item != '*';});
-
-        return array_values($databases);
-    }
-
-    /**
-     * Get all tables
-     * @return array
-     */
-    public function getTables()
-    {
-        $tables = [];
-
-        collect($this->getEvents())->each(function ($listeners, $database) use (&$tables) {
-            if (is_array($listeners) && !empty($listeners)) {
-                $tables = array_merge($tables, array_filter(array_keys($listeners), function ($item) {return $item != '*';}));
-            }
-        });
-
-        return $tables;
     }
 }

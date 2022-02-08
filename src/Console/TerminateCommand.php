@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger\Console;
 
 use Huangdijia\Trigger\Facades\Trigger;
@@ -13,16 +21,16 @@ class TerminateCommand extends Command
      * @var string
      */
     protected $signature = 'trigger:terminate {--R|replication=default : replication} {--reset : reset replication position}';
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Terminate the process so it can be restarted';
+
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle()
     {
@@ -35,6 +43,5 @@ class TerminateCommand extends Command
             $trigger->reset();
             $this->info('Replication position reseted.');
         }
-
     }
 }

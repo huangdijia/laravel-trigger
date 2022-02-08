@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger;
 
 use InvalidArgumentException;
@@ -7,40 +15,50 @@ use InvalidArgumentException;
 class Manager
 {
     /**
-     * Configs
-     * @var array
-     */
-    protected $config;
-    /**
-     * Replications
+     * Replications.
      * @var Trigger[]
      */
     protected $replications;
 
-    public function __construct(array $config = [])
+    public function __construct(
+        /**
+         * Configs.
+         */
+        protected array $config = []
+    )
     {
-        $this->config = $config;
     }
 
     /**
-     * Create new replication
+     * call.
      *
-     * @param string|null $name
+     * @param string $method
+     * @param array $parameters
+     * @return mixed
+     */
+    public function __call($method, $parameters)
+    {
+        return $this->replication()->{$method}(...$parameters);
+    }
+
+    /**
+     * Create new replication.
+     *
      * @return Trigger
      */
     public function replication(?string $name = null)
     {
-        $name = $name ?? $this->config['default'] ?? 'default';
+        $name ??= $this->config['default'] ?? 'default';
 
-        if (!isset($this->replications[$name])) {
-            if (!isset($this->config['replications'][$name])) {
+        if (! isset($this->replications[$name])) {
+            if (! isset($this->config['replications'][$name])) {
                 new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1);
             }
 
             // load config
             $config = $this->config['replications'][$name];
 
-            /** @var Trigger[] */
+            /* @var Trigger[] */
             $this->replications[$name] = new Trigger($name, $config);
 
             // load routes
@@ -56,24 +74,12 @@ class Manager
     }
 
     /**
-     * Get all replications
+     * Get all replications.
      *
      * @return array
      */
     public function replications()
     {
         return $this->replications;
-    }
-
-    /**
-     * call
-     *
-     * @param string $method
-     * @param array $parameters
-     * @return mixed
-     */
-    public function __call($method, $parameters)
-    {
-        return $this->replication()->{$method}(...$parameters);
     }
 }

@@ -1,12 +1,21 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger\Console;
 
 use Illuminate\Console\Command;
 
 class InstallCommand extends Command
 {
-    protected $signature   = 'trigger:install {--force}';
+    protected $signature = 'trigger:install {--force}';
+
     protected $description = 'Install config and routes';
 
     public function handle()
@@ -18,7 +27,7 @@ class InstallCommand extends Command
             __DIR__ . '/../../routes/trigger.php' => app()->basePath('routes/trigger.php'),
         ])
             ->reject(function ($target, $source) use ($force) {
-                if (!$force && file_exists($target)) {
+                if (! $force && file_exists($target)) {
                     $this->warn("{$target} already exists!");
                     return true;
                 }

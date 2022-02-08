@@ -1,7 +1,13 @@
 <?php
 
-/** @var \Huangdijia\Trigger\Trigger $trigger */
-
-$trigger->on('*', 'heartbeat', function($event) use ($trigger) {
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
+$trigger->on('*', 'heartbeat', function ($event) use ($trigger) {
     $trigger->heartbeat($event);
 });

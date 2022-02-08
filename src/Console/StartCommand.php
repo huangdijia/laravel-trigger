@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger\Console;
 
 use Huangdijia\Trigger\Facades\Trigger;
@@ -14,20 +22,20 @@ class StartCommand extends Command
      * @var string
      */
     protected $signature = 'trigger:start {--R|replication=default : replication} {--reset}';
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Start trigger service';
+
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle()
     {
-        $keepup  = $this->option('reset') ? false : true;
+        $keepup = $this->option('reset') ? false : true;
         $trigger = Trigger::replication($this->option('replication'));
 
         start:
@@ -39,8 +47,8 @@ class StartCommand extends Command
                     collect($trigger->getConfig())
                         ->merge(['bootat' => date('Y-m-d H:i:s')])
                         ->transform(function ($item, $key) {
-                            if (!is_scalar($item)) {
-                                $item = json_encode($item);
+                            if (! is_scalar($item)) {
+                                $item = json_encode($item, JSON_THROW_ON_ERROR);
                             }
 
                             return [ucfirst($key), $item];
@@ -49,7 +57,7 @@ class StartCommand extends Command
 
                 $binLogCurrent = $trigger->getCurrent();
 
-                if ($keepup && !is_null($binLogCurrent)) {
+                if ($keepup && ! is_null($binLogCurrent)) {
                     $this->info('BinLog');
 
                     $this->table(
@@ -65,14 +73,11 @@ class StartCommand extends Command
                 $this->table(
                     ['Subscriber', 'Registerd'],
                     collect($trigger->getSubscribers())
-                        ->transform(function ($subscriber) {
-                            return [$subscriber, '√'];
-                        })
+                        ->transform(fn($subscriber) => [$subscriber, '√'])
                 );
             }
 
             $trigger->start($keepup);
-
         } catch (MySQLReplicationException $e) {
             $this->error($e->getMessage());
 

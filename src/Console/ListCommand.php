@@ -1,5 +1,13 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger\Console;
 
 use Closure;
@@ -16,16 +24,16 @@ class ListCommand extends Command
      * @var string
      */
     protected $signature = 'trigger:list {--R|replication=default : replication} {--database= : Filter by database} {--table= : Filter by table} {--event= : Filter by event}';
+
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'List all trigger events';
+
     /**
      * Execute the console command.
-     *
-     * @return void
      */
     public function handle()
     {
@@ -43,59 +51,50 @@ class ListCommand extends Command
                 }
 
                 return [
-                    'key'      => $key,
+                    'key' => $key,
                     'database' => $database,
-                    'table'    => $table,
-                    'event'    => $event,
-                    'num'      => $num,
-                    'action'   => $action,
+                    'table' => $table,
+                    'event' => $event,
+                    'num' => $num,
+                    'action' => $action,
                 ];
             })
-            ->when($this->option('database'), function ($collection, $database) {
-                return $collection->where('database', $database);
-            })
-            ->when($this->option('table'), function ($collection, $table) {
-                return $collection->where('table', $table);
-            })
-            ->when($this->option('event'), function ($collection, $event) {
-                return $collection->where('event', $event);
-            })
+            ->when($this->option('database'), fn($collection, $database) => $collection->where('database', $database))
+            ->when($this->option('table'), fn($collection, $table) => $collection->where('table', $table))
+            ->when($this->option('event'), fn($collection, $event) => $collection->where('event', $event))
             ->unique('key')
-            ->transform(function ($item) {
-                return [
-                    $item['database'],
-                    $item['table'],
-                    $item['event'],
-                    $item['num'],
-                    $item['action'],
-                ];
-            })
+            ->transform(fn($item) => [
+                $item['database'],
+                $item['table'],
+                $item['event'],
+                $item['num'],
+                $item['action'],
+            ])
             ->tap(function ($items) {
                 $this->table(['Database', 'Table', 'Event', 'Num', 'Action'], $items);
             });
     }
 
     /**
-     * Transform action to string
+     * Transform action to string.
      *
-     * @param Closure|object|array|string $action
+     * @param array|Closure|object|string $action
      * @return string
      */
     public function transformActionToString($action)
     {
         if ($action instanceof Closure) {
-            $action = 'Closure';
+            $action = \Closure::class;
         } elseif (is_object($action)) {
-            $action = get_class($action);
+            $action = $action::class;
         } elseif (is_array($action)) {
             if (is_object($action[0])) {
-                $action[0] = get_class($action[0]);
+                $action[0] = $action[0]::class;
             }
             $action = sprintf('%s@%s', $action[0], $action[1] ?? 'handle');
         } elseif (is_string($action)) {
-            if (false === strpos($action, '@')) {
+            if (!str_contains($action, '@')) {
                 if (is_subclass_of($action, ShouldQueue::class)) {
-                    //
                 } else {
                     $action .= '@handle';
                 }

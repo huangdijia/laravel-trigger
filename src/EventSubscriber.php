@@ -1,15 +1,20 @@
 <?php
 
+declare(strict_types=1);
+/**
+ * This file is part of hyperf/helpers.
+ *
+ * @link     https://github.com/huangdijia/laravel-trigger
+ * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @contact  huangdijia@gmail.com
+ */
 namespace Huangdijia\Trigger;
 
 use MySQLReplication\Event\EventSubscribers;
 
 class EventSubscriber extends EventSubscribers
 {
-    protected $trigger;
-
-    public function __construct(Trigger $trigger)
+    public function __construct(protected Trigger $trigger)
     {
-        $this->trigger = $trigger;
     }
 }
