@@ -5,7 +5,7 @@ declare(strict_types=1);
  * This file is part of hyperf/helpers.
  *
  * @link     https://github.com/huangdijia/laravel-trigger
- * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
 namespace Huangdijia\Trigger\Console;
@@ -59,11 +59,11 @@ class ListCommand extends Command
                     'action' => $action,
                 ];
             })
-            ->when($this->option('database'), fn($collection, $database) => $collection->where('database', $database))
-            ->when($this->option('table'), fn($collection, $table) => $collection->where('table', $table))
-            ->when($this->option('event'), fn($collection, $event) => $collection->where('event', $event))
+            ->when($this->option('database'), fn ($collection, $database) => $collection->where('database', $database))
+            ->when($this->option('table'), fn ($collection, $table) => $collection->where('table', $table))
+            ->when($this->option('event'), fn ($collection, $event) => $collection->where('event', $event))
             ->unique('key')
-            ->transform(fn($item) => [
+            ->transform(fn ($item) => [
                 $item['database'],
                 $item['table'],
                 $item['event'],
@@ -93,7 +93,7 @@ class ListCommand extends Command
             }
             $action = sprintf('%s@%s', $action[0], $action[1] ?? 'handle');
         } elseif (is_string($action)) {
-            if (!str_contains($action, '@')) {
+            if (! str_contains($action, '@')) {
                 if (is_subclass_of($action, ShouldQueue::class)) {
                 } else {
                     $action .= '@handle';

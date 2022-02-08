@@ -5,7 +5,7 @@ declare(strict_types=1);
  * This file is part of hyperf/helpers.
  *
  * @link     https://github.com/huangdijia/laravel-trigger
- * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
 namespace Huangdijia\Trigger;
@@ -147,7 +147,7 @@ class Trigger
         tap(new MySQLReplicationFactory($this->configure($keepup)), function ($binLogStream) {
             /* @var MySQLReplicationFactory $binLogStream */
             collect($this->getSubscribers())
-                ->reject(fn($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
+                ->reject(fn ($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
                 ->unique()
                 ->each(function ($subscriber) use ($binLogStream) {
                     $binLogStream->registerSubscriber(new $subscriber($this));
@@ -229,11 +229,11 @@ class Trigger
      *
      * @param array|callable|Closure|string $action
      */
-    public function on(string $table, array|string $eventType, array|callable|\Closure|string $action = null)
+    public function on(string $table, array|string $eventType, array|callable | \Closure | string $action = null)
     {
         // table as db.tb1,db.tb2,...
         if (str_contains($table, ',')) {
-            collect(explode(',', $table))->transform(fn($table) => trim($table))
+            collect(explode(',', $table))->transform(fn ($table) => trim($table))
                 ->filter()
                 ->each(function ($table) use ($eventType, $action) {
                     $this->on($table, $eventType, $action);
@@ -248,7 +248,7 @@ class Trigger
 
         // default database
         $table = ltrim($table, '.');
-        if (!str_contains($table, '.')) { // table to database.table
+        if (! str_contains($table, '.')) { // table to database.table
             $table = sprintf('%s.%s', ($this->config['databases'][0] ?? '*'), $table);
         } elseif (substr($table, -1) == '.') { // database. to database.*
             $table .= '*';
@@ -271,7 +271,7 @@ class Trigger
             // eventType as write,update,delete...
             if (str_contains($eventType, ',')) {
                 collect(explode(',', $eventType))
-                    ->transform(fn($eventType) => trim($eventType))
+                    ->transform(fn ($eventType) => trim($eventType))
                     ->filter()
                     ->each(function ($eventType) use ($table, $action) {
                         $this->on($table, $eventType, $action);
@@ -346,7 +346,7 @@ class Trigger
     public function getDatabases()
     {
         $databases = array_keys($this->getEvents());
-        $databases = array_filter($databases, fn($item) => $item != '*');
+        $databases = array_filter($databases, fn ($item) => $item != '*');
 
         return array_values($databases);
     }
@@ -361,7 +361,7 @@ class Trigger
 
         collect($this->getEvents())->each(function ($listeners, $database) use (&$tables) {
             if (is_array($listeners) && ! empty($listeners)) {
-                $tables = [...$tables, ...array_filter(array_keys($listeners), fn($item) => $item != '*')];
+                $tables = [...$tables, ...array_filter(array_keys($listeners), fn ($item) => $item != '*')];
             }
         });
 

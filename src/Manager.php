@@ -5,7 +5,7 @@ declare(strict_types=1);
  * This file is part of hyperf/helpers.
  *
  * @link     https://github.com/huangdijia/laravel-trigger
- * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
 namespace Huangdijia\Trigger;
@@ -21,12 +21,11 @@ class Manager
     protected $replications;
 
     public function __construct(
-        /**
+        /*
          * Configs.
          */
         protected array $config = []
-    )
-    {
+    ) {
     }
 
     /**

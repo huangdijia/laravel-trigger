@@ -5,7 +5,7 @@ declare(strict_types=1);
  * This file is part of hyperf/helpers.
  *
  * @link     https://github.com/huangdijia/laravel-trigger
- * @document https://github.com/huangdijia/laravel-trigger/blob/3.x/README.md
+ * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
 namespace Huangdijia\Trigger;
@@ -23,7 +23,7 @@ class TriggerServiceProvider extends ServiceProvider
         $this->configure();
         $this->registerCommands();
 
-        $this->app->bind('trigger.manager', fn($app) => new Manager($app->make('config')->get('trigger')));
+        $this->app->bind('trigger.manager', fn ($app) => new Manager($app->make('config')->get('trigger')));
     }
 
     public function configure()

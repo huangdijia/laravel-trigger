@@ -1,5 +1,6 @@
 # laravel-trigger
 
+[![Latest Test](https://github.com/huangdijia/laravel-trigger/workflows/tests/badge.svg)](https://github.com/huangdijia/laravel-trigger/actions)
 [![Latest Stable Version](https://poser.pugx.org/huangdijia/laravel-trigger/version.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 
