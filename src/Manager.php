@@ -18,14 +18,10 @@ class Manager
      * Replications.
      * @var Trigger[]
      */
-    protected $replications;
+    protected array $replications = [];
 
-    public function __construct(
-        /*
-         * Configs.
-         */
-        protected array $config = []
-    ) {
+    public function __construct(protected array $config = [])
+    {
     }
 
     /**
@@ -42,10 +38,8 @@ class Manager
 
     /**
      * Create new replication.
-     *
-     * @return Trigger
      */
-    public function replication(?string $name = null)
+    public function replication(?string $name = null): Trigger
     {
         $name ??= $this->config['default'] ?? 'default';
 
@@ -75,9 +69,9 @@ class Manager
     /**
      * Get all replications.
      *
-     * @return array
+     * @return Trigger[]
      */
-    public function replications()
+    public function replications(): array
     {
         return $this->replications;
     }

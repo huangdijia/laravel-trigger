@@ -25,24 +25,19 @@ use ReflectionMethod;
 
 class Trigger
 {
-    /**
-     * Cache.
-     *
-     * @var \Illuminate\Support\Facades\Cache
-     */
-    protected $cache;
+    protected \Illuminate\Contracts\Cache\Repository $cache;
 
-    protected $events = [];
+    protected array $events = [];
 
-    protected $bootTime;
+    protected int $bootTime;
 
-    protected $replicationCacheKey;
+    protected string $replicationCacheKey;
 
-    protected $resetCacheKey;
+    protected string $resetCacheKey;
 
-    protected $restartCacheKey;
+    protected string $restartCacheKey;
 
-    protected $defaultSubscribers = [
+    protected array $defaultSubscribers = [
         \Huangdijia\Trigger\Subscribers\Trigger::class,
         \Huangdijia\Trigger\Subscribers\Terminate::class,
         \Huangdijia\Trigger\Subscribers\Heartbeat::class,
@@ -86,10 +81,8 @@ class Trigger
 
     /**
      * Get subscribers.
-     *
-     * @return array
      */
-    public function getSubscribers()
+    public function getSubscribers(): array
     {
         return array_merge(
             $this->getConfig('subscribers') ?: [],
@@ -99,13 +92,10 @@ class Trigger
 
     /**
      * Builder config.
-     * @param bool $keepup
-     * @return \MySQLReplication\Config\Config
      */
-    public function configure($keepup = true)
+    public function configure(bool $keepUp = true): \MySQLReplication\Config\Config
     {
-        return tap(new ConfigBuilder(), function ($builder) use ($keepup) {
-            /* @var ConfigBuilder $builder */
+        return tap(new ConfigBuilder(), function (ConfigBuilder $builder) use ($keepUp) {
             $builder->withSlaveId(time())
                 ->withHost($this->getConfig('host'))
                 ->withPort($this->getConfig('port'))
@@ -115,7 +105,7 @@ class Trigger
                 ->withTablesOnly($this->getConfig('tables'))
                 ->withHeartbeatPeriod($this->getConfig('heartbeat') ?: 3);
 
-            if ($keepup && $binLogCurrent = $this->getCurrent()) {
+            if ($keepUp && $binLogCurrent = $this->getCurrent()) {
                 $builder->withBinLogFileName($binLogCurrent->getBinFileName())
                     ->withBinLogPosition($binLogCurrent->getBinLogPosition());
             }
@@ -125,7 +115,7 @@ class Trigger
     /**
      * Load routes of trigger.
      */
-    public function loadRoutes()
+    public function loadRoutes(): void
     {
         $routeFile = $this->config['route'] ?? '';
 
@@ -140,12 +130,10 @@ class Trigger
 
     /**
      * Start.
-     * @param bool $keepup
      */
-    public function start($keepup = true)
+    public function start(bool $keepUp = true): void
     {
-        tap(new MySQLReplicationFactory($this->configure($keepup)), function ($binLogStream) {
-            /* @var MySQLReplicationFactory $binLogStream */
+        tap(new MySQLReplicationFactory($this->configure($keepUp)), function (MySQLReplicationFactory $binLogStream) {
             collect($this->getSubscribers())
                 ->reject(fn ($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
                 ->unique()
@@ -158,16 +146,15 @@ class Trigger
     /**
      * Reset.
      */
-    public function reset()
+    public function reset(): void
     {
         $this->cache->forever($this->resetCacheKey, time());
     }
 
     /**
      * IsReseted.
-     * @return bool
      */
-    public function isReseted()
+    public function isReseted(): bool
     {
         return $this->cache->get($this->resetCacheKey, 0) > $this->bootTime;
     }
@@ -175,17 +162,15 @@ class Trigger
     /**
      * Terminate.
      */
-    public function terminate()
+    public function terminate(): void
     {
         $this->cache->forever($this->restartCacheKey, time());
     }
 
     /**
      * Is terminated.
-     *
-     * @return bool
      */
-    public function isTerminated()
+    public function isTerminated(): bool
     {
         return $this->cache->get($this->restartCacheKey, 0) > $this->bootTime;
     }
@@ -193,7 +178,7 @@ class Trigger
     /**
      * Remember current by heartbeat.
      */
-    public function heartbeat(EventDTO $event)
+    public function heartbeat(EventDTO $event): void
     {
         $this->rememberCurrent($event->getEventInfo()->getBinLogCurrent());
     }
@@ -201,17 +186,15 @@ class Trigger
     /**
      * Remember current.
      */
-    public function rememberCurrent(BinLogCurrent $binLogCurrent)
+    public function rememberCurrent(BinLogCurrent $binLogCurrent): void
     {
         $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
     }
 
     /**
      * Get current.
-     *
-     * @return null|\MySQLReplication\BinLog\BinLogCurrent
      */
-    public function getCurrent()
+    public function getCurrent(): ?BinLogCurrent
     {
         return with($this->cache->get($this->replicationCacheKey));
     }
@@ -226,10 +209,8 @@ class Trigger
 
     /**
      * Bind events.
-     *
-     * @param array|callable|Closure|string $action
      */
-    public function on(string $table, array|string $eventType, array|callable | \Closure | string $action = null)
+    public function on(string $table, array|string $eventType, array|callable | \Closure | string $action = null): void
     {
         // table as db.tb1,db.tb2,...
         if (str_contains($table, ',')) {
@@ -294,7 +275,7 @@ class Trigger
     /**
      * Fire events.
      */
-    public function dispatch(EventDTO $event)
+    public function dispatch(EventDTO $event): void
     {
         $events = [];
         $eventType = $event->getType();
@@ -319,7 +300,7 @@ class Trigger
      *
      * @param mixed $events
      */
-    public function fire($events, EventDTO $event = null)
+    public function fire($events, EventDTO $event = null): void
     {
         collect($events)->each(function ($e) use ($event) {
             collect(Arr::get($this->events, $e))->each(function ($action) use ($event) {
@@ -330,20 +311,16 @@ class Trigger
 
     /**
      * Get all events.
-     *
-     * @return array
      */
-    public function getEvents()
+    public function getEvents(): array
     {
         return $this->events ?: [];
     }
 
     /**
      * Get all databases.
-     *
-     * @return array
      */
-    public function getDatabases()
+    public function getDatabases(): array
     {
         $databases = array_keys($this->getEvents());
         $databases = array_filter($databases, fn ($item) => $item != '*');
@@ -353,9 +330,8 @@ class Trigger
 
     /**
      * Get all tables.
-     * @return array
      */
-    public function getTables()
+    public function getTables(): array
     {
         $tables = [];
 
@@ -375,7 +351,7 @@ class Trigger
      * @param mixed $event
      * @return array [callable $callback, array $parameters]
      */
-    private function parseAction($action, $event)
+    private function parseAction($action, $event): array
     {
         // callable
         if (is_callable($action)) {
