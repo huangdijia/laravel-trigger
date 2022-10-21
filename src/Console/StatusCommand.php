@@ -18,6 +18,7 @@ class StatusCommand extends Command
 
         if (is_null($binLogCurrent)) {
             $this->warn('binlog info of ' . $replication . ' is empty.');
+            return;
         }
 
         $this->table(
