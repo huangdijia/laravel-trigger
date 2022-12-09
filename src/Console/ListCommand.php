@@ -84,7 +84,7 @@ class ListCommand extends Command
     public function transformActionToString($action)
     {
         if ($action instanceof Closure) {
-            $action = \Closure::class;
+            $action = Closure::class;
         } elseif (is_object($action)) {
             $action = $action::class;
         } elseif (is_array($action)) {

@@ -10,6 +10,7 @@ declare(strict_types=1);
  */
 namespace Huangdijia\Trigger;
 
+use Closure;
 use Exception;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -210,7 +211,7 @@ class Trigger
     /**
      * Bind events.
      */
-    public function on(string $table, array|string $eventType, array|callable|\Closure|string $action = null): void
+    public function on(string $table, array|string $eventType, array|callable|Closure|string $action = null): void
     {
         // table as db.tb1,db.tb2,...
         if (str_contains($table, ',')) {
@@ -230,7 +231,7 @@ class Trigger
         // default database
         $table = ltrim($table, '.');
         if (! str_contains($table, '.')) { // table to database.table
-            $table = sprintf('%s.%s', ($this->config['databases'][0] ?? '*'), $table);
+            $table = sprintf('%s.%s', $this->config['databases'][0] ?? '*', $table);
         } elseif (substr($table, -1) == '.') { // database. to database.*
             $table .= '*';
         }
