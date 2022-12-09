@@ -9,7 +9,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        php-version: ['8.0', '8.1']
+        php-version: ['8.0', '8.1', '8.2']
       max-parallel: 4
     steps:
       - name: Checkout
@@ -18,11 +18,18 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php-version }}
-          extensions: redis, pdo, pdo_mysql, bcmath, swoole
+          extensions: redis, pdo, pdo_mysql, bcmath
           tools: phpize
           coverage: none
       - name: Setup Packages
         run: composer update -o
+      - name: Run Cs Fixer
+        run: |
+          if [ "${{ matrix.php-version }}" == "8.2" ]; then
+            PHP_CS_FIXER_IGNORE_ENV=true ./vendor/bin/php-cs-fixer fix $1 --dry-run --diff --verbose --show-progress=dots
+          else
+            ./vendor/bin/php-cs-fixer fix $1 --dry-run --diff --verbose --show-progress=dots
+          fi
       - name: Run Analyse
         run: |
           composer analyse src
