@@ -16,7 +16,7 @@
     "require": {
         "illuminate/support": "^9.0|^10.0",
         "illuminate/console": "^9.0|^10.0",
-        "krowinski/php-mysql-replication": "^7.0"
+        "moln/php-mysql-replication": "^1.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
