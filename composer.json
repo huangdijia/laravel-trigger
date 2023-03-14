@@ -14,13 +14,13 @@
         "email": "huangdijia@gmail.com"
     }],
     "require": {
-        "illuminate/support": "^9.0",
-        "illuminate/console": "^9.0",
-        "krowinski/php-mysql-replication": "^7.0"
+        "illuminate/support": "^9.0|^10.0",
+        "illuminate/console": "^9.0|^10.0",
+        "moln/php-mysql-replication": "^1.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
-        "orchestra/testbench": "^7.0",
+        "orchestra/testbench": "^7.0|^8.0",
         "phpstan/phpstan": "^1.0"
     },
     "autoload": {
@@ -40,7 +40,8 @@
     "config": {
         "allow-plugins": {
             "composer/package-versions-deprecated": true
-        }
+        },
+        "sort-packages": true
     },
     "scripts": {
         "analyse": "phpstan analyse --memory-limit 300M -l 0 -c phpstan.neon ./src",
