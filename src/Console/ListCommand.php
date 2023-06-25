@@ -20,17 +20,15 @@ class ListCommand extends Command
 {
     /**
      * The name and signature of the console command.
-     *
      * @var string
      */
     protected $signature = 'trigger:list {--R|replication=default : replication} {--database= : Filter by database} {--table= : Filter by table} {--event= : Filter by event}';
 
     /**
      * The console command description.
-     *
      * @var string
      */
-    protected $description = 'List all trigger events';
+    protected $description = 'List all trigger events.';
 
     /**
      * Execute the console command.

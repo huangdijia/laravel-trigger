@@ -15,9 +15,17 @@ use Illuminate\Console\Command;
 
 class StatusCommand extends Command
 {
+    /**
+     * The name and signature of the console command.
+     * @var string
+     */
     protected $signature = 'trigger:status {--R|replication=default : replication}';
 
-    protected $description = 'Install config and routes';
+    /**
+     * The console command description.
+     * @var string
+     */
+    protected $description = 'Install config and routes.';
 
     public function handle()
     {
