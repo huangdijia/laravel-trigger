@@ -138,9 +138,7 @@ class Trigger
             collect($this->getSubscribers())
                 ->reject(fn ($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
                 ->unique()
-                ->each(function ($subscriber) use ($binLogStream) {
-                    $binLogStream->registerSubscriber(new $subscriber($this));
-                });
+                ->each(fn ($subscriber) => $binLogStream->registerSubscriber(new $subscriber($this)));
         })->run();
     }
 
@@ -223,9 +221,7 @@ class Trigger
         if (str_contains($table, ',')) {
             collect(explode(',', $table))->transform(fn ($table) => trim($table))
                 ->filter()
-                ->each(function ($table) use ($eventType, $action) {
-                    $this->on($table, $eventType, $action);
-                });
+                ->each(fn ($table) => $this->on($table, $eventType, $action));
             return;
         }
 
@@ -244,10 +240,7 @@ class Trigger
 
         // eventType as array
         if (is_array($eventType)) {
-            collect($eventType)->each(function ($action, $eventType) use ($table) {
-                $this->on($table, $eventType, $action);
-            });
-
+            collect($eventType)->each(fn ($action, $eventType) => $this->on($table, $eventType, $action));
             return;
         }
 
@@ -261,10 +254,7 @@ class Trigger
                 collect(explode(',', $eventType))
                     ->transform(fn ($eventType) => trim($eventType))
                     ->filter()
-                    ->each(function ($eventType) use ($table, $action) {
-                        $this->on($table, $eventType, $action);
-                    });
-
+                    ->each(fn ($eventType) => $this->on($table, $eventType, $action));
                 return;
             }
         }
@@ -310,9 +300,7 @@ class Trigger
     public function fire($events, EventDTO $event = null): void
     {
         collect($events)->each(function ($e) use ($event) {
-            collect(Arr::get($this->events, $e))->each(function ($action) use ($event) {
-                $this->call(...$this->parseAction($action, $event));
-            });
+            collect(Arr::get($this->events, $e))->each(fn ($action) => $this->call(...$this->parseAction($action, $event)));
         });
     }
 
