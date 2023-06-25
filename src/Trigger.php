@@ -195,13 +195,11 @@ class Trigger
      */
     public function getCurrent(): ?BinLogCurrent
     {
-        return with($this->cache->get($this->replicationCacheKey), function ($cache) {
-            if (! $cache) {
-                return null;
-            }
+        if (! $cache = $this->cache->get($this->replicationCacheKey)) {
+            return null;
+        }
 
-            return unserialize($cache) ?: null;
-        });
+        return unserialize($cache) ?: null;
     }
 
     /**
