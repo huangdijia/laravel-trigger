@@ -45,7 +45,7 @@ class Manager
 
         if (! isset($this->replications[$name])) {
             if (! isset($this->config['replications'][$name])) {
-                new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1);
+                throw new InvalidArgumentException("Config 'trigger.replications.{$name}' is undefined", 1);
             }
 
             // load config
