@@ -39,9 +39,9 @@ class Trigger
     protected string $restartCacheKey;
 
     protected array $defaultSubscribers = [
-        \Huangdijia\Trigger\Subscribers\Trigger::class,
-        \Huangdijia\Trigger\Subscribers\Terminate::class,
-        \Huangdijia\Trigger\Subscribers\Heartbeat::class,
+        Subscribers\Trigger::class,
+        Subscribers\Terminate::class,
+        Subscribers\Heartbeat::class,
     ];
 
     public function __construct(protected string $name = 'default', protected array $config = [])
