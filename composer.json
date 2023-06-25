@@ -1,6 +1,6 @@
 {
     "name": "huangdijia/laravel-trigger",
-    "description": "MySQL trigger base on MySQLReplication",
+    "description": "MySQL trigger base on MySQLReplication.",
     "type": "library",
     "keywords": [
         "laravel",
