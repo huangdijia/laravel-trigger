@@ -303,7 +303,7 @@ class Trigger
     }
 
     /**
-     * Fire evnets.
+     * Fire events.
      *
      * @param mixed $events
      */
