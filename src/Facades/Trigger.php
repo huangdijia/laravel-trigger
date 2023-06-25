@@ -17,11 +17,11 @@ use Illuminate\Support\Facades\Facade;
  * @method static \Huangdijia\Trigger\Trigger replication(?string $name = null)
  * @method static array replications()
  * @see Huangdijia\Trigger\Trigger
- * @method static \MySQLReplication\Config\Config configure(bool $keepup)
+ * @method static \MySQLReplication\Config\Config configure(bool $keepUp)
  * @method static array getConfig()
  * @method static array getSubscribers()
  * @method static void loadRoutes()
- * @method static void start(bool $keepup)
+ * @method static void start(bool $keepUp)
  * @method static void terminate()
  * @method static boolean isTerminated()
  * @method static void heartbeat(EventDTO $event)
