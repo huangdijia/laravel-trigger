@@ -8,6 +8,7 @@ declare(strict_types=1);
  * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
+
 namespace Huangdijia\Trigger\Console;
 
 use Illuminate\Console\Command;
