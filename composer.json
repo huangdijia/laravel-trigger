@@ -14,14 +14,14 @@
         "email": "huangdijia@gmail.com"
     }],
     "require": {
-        "illuminate/support": "^9.0|^10.0",
-        "illuminate/console": "^9.0|^10.0",
+        "illuminate/support": "^10.0|^11.0",
+        "illuminate/console": "^10.0|^11.0",
         "moln/php-mysql-replication": "^1.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.0",
         "huangdijia/php-coding-standard": "^1.1",
-        "orchestra/testbench": "^7.0|^8.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0",
         "phpstan/phpstan": "^1.0"
     },
     "autoload": {
