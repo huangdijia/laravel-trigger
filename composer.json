@@ -36,6 +36,9 @@
             "providers": [
                 "Huangdijia\\Trigger\\TriggerServiceProvider"
             ]
+        },
+        "branch-alias": {
+            "dev-main": "5.x-dev"
         }
     },
     "config": {
