@@ -214,7 +214,7 @@ class Trigger
     /**
      * Bind events.
      */
-    public function on(string $table, array|string $eventType, array|callable|Closure|string $action = null): void
+    public function on(string $table, array|string $eventType, array|callable|Closure|string|null $action = null): void
     {
         // table as db.tb1,db.tb2,...
         if (str_contains($table, ',')) {
@@ -296,7 +296,7 @@ class Trigger
      *
      * @param mixed $events
      */
-    public function fire($events, EventDTO $event = null): void
+    public function fire($events, ?EventDTO $event = null): void
     {
         collect($events)->each(function ($e) use ($event) {
             collect(Arr::get($this->events, $e))->each(fn ($action) => $this->call(...$this->parseAction($action, $event)));
