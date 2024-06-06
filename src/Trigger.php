@@ -24,6 +24,7 @@ use MySQLReplication\Event\DTO\EventDTO;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
+use Throwable;
 
 class Trigger
 {
@@ -202,7 +203,7 @@ class Trigger
 
         try {
             return unserialize($cache);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             $this->clearCurrent();
             return null;
         }
