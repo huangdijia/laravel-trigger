@@ -72,7 +72,7 @@ class StartCommand extends Command
 
                 $this->info('Subscribers');
                 $this->table(
-                    ['Subscriber', 'Registerd'],
+                    ['Subscriber', 'Registered'],
                     collect($trigger->getSubscribers())
                         ->transform(fn ($subscriber) => [$subscriber, '√'])
                 );

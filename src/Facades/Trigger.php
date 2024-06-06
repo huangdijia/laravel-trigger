@@ -12,6 +12,8 @@ declare(strict_types=1);
 namespace Huangdijia\Trigger\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use MySQLReplication\BinLog\BinLogCurrent;
+use MySQLReplication\Event\DTO\EventDTO;
 
 /**
  * @see \Huangdijia\Trigger\Manager
