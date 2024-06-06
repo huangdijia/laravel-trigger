@@ -180,7 +180,7 @@ class Trigger
      */
     public function heartbeat(EventDTO $event): void
     {
-        $this->rememberCurrent($event->getEventInfo()->getBinLogCurrent());
+        $this->rememberCurrent($event->getEventInfo()->binLogCurrent);
     }
 
     /**
