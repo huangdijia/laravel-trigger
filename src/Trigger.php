@@ -200,7 +200,12 @@ class Trigger
             return null;
         }
 
-        return unserialize($cache) ?: null;
+        try {
+            return unserialize($cache);
+        } catch (\Throwable $e) {
+            $this->clearCurrent();
+            return null;
+        }
     }
 
     /**
