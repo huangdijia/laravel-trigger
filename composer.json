@@ -15,14 +15,14 @@
     }],
     "require": {
         "php": "^8.2",
-        "illuminate/support": "^11.0",
-        "illuminate/console": "^11.0",
+        "illuminate/support": "^11.0|^12.0",
+        "illuminate/console": "^11.0|^12.0",
         "krowinski/php-mysql-replication": "^8.0"
     },
     "require-dev": {
         "huangdijia/php-coding-standard": "^2.1",
-        "orchestra/testbench": "^9.0",
-        "phpstan/phpstan": "^1.11"
+        "orchestra/testbench": "^9.0|^10.0",
+        "phpstan/phpstan": "^1.11|^2.0"
     },
     "autoload": {
         "files": [],
@@ -43,7 +43,8 @@
     },
     "config": {
         "allow-plugins": {
-            "composer/package-versions-deprecated": true
+            "composer/package-versions-deprecated": true,
+            "ergebnis/composer-normalize": true
         },
         "sort-packages": true
     },
