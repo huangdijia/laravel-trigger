@@ -9,15 +9,23 @@
 
 [English Document](README.md)
 
+## 快速开始
+
+1. 安装包: `composer require "huangdijia/laravel-trigger:^4.0"`
+2. 配置MySQL服务器进行复制 (参见 [MySQL 配置](#mysql-配置))
+3. 发布配置: `php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"`
+4. 在 `.env` 文件中配置数据库凭证
+5. 开始监听: `php artisan trigger:start`
+
 ## 目录
 
+- [快速开始](#快速开始)
 - [MySQL 配置](#mysql-配置)
 - [安装](#安装)
 - [启动服务](#启动服务)
 - [事件订阅](#事件订阅)
 - [事件路由](#事件路由)
-- [查看事件列表](#查看事件列表)
-- [终止服务](#终止服务)
+- [管理命令](#管理命令)
 - [鸣谢](#鸣谢)
 
 ## MySQL 配置
@@ -211,13 +219,15 @@ $trigger->on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default 
 $trigger->on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
-## 查看事件列表
+## 管理命令
+
+### 查看事件列表
 
 ~~~bash
 php artisan trigger:list [-R=xxx]
 ~~~
 
-## 终止服务
+### 终止服务
 
 ~~~bash
 php artisan trigger:terminate [-R=xxx]

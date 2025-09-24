@@ -9,8 +9,17 @@ Subscribe to MySQL events like jQuery, based on [php-mysql-replication](https://
 
 [中文说明](README-CN.md)
 
+## Quick Start
+
+1. Install the package: `composer require "huangdijia/laravel-trigger:^4.0"`
+2. Configure your MySQL server for replication (see [MySQL Server Configuration](#mysql-server-configuration))
+3. Publish the config: `php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"`
+4. Configure your `.env` file with database credentials
+5. Start listening: `php artisan trigger:start`
+
 ## Table of Contents
 
+- [Quick Start](#quick-start)
 - [MySQL Server Configuration](#mysql-server-configuration)
 - [Installation](#installation)
 - [Usage](#usage)
