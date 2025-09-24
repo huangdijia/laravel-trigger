@@ -14,7 +14,7 @@ laravel-trigger is a Laravel/Lumen package that allows subscribing to MySQL binl
 
 ### Validation and Testing
 - Validate PHP syntax across all files:
-  - `find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \;` -- takes 10-15 seconds. Always run this first.
+  - `find . -name "*.php" -not -path "./vendor/*" -exec php -l {} \;` -- takes less than 1 second. Always run this first.
 - Run PHPStan analysis (if dependencies are available):
   - `composer analyse` -- takes 30-60 seconds. NEVER CANCEL. Set timeout to 2+ minutes.
   - Direct command: `phpstan analyse --memory-limit 300M -l 0 -c phpstan.neon ./src`
