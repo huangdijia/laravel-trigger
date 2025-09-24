@@ -22,7 +22,7 @@
     "require-dev": {
         "huangdijia/php-coding-standard": "^2.1",
         "orchestra/testbench": "^9.0 || ^10.0",
-        "phpstan/phpstan": "^2.0"
+        "phpstan/phpstan": "2.1.x-dev"
     },
     "autoload": {
         "files": [],
