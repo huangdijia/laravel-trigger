@@ -5,13 +5,25 @@
 [![Total Downloads](https://poser.pugx.org/huangdijia/laravel-trigger/d/total.png)](https://packagist.org/packages/huangdijia/laravel-trigger)
 [![GitHub license](https://img.shields.io/github/license/huangdijia/laravel-trigger)](https://github.com/huangdijia/laravel-trigger)
 
-Subscribe MySQL events like jQuery, base on [php-mysql-replication](https://github.com/krowinski/php-mysql-replication)
+Subscribe to MySQL events like jQuery, based on [php-mysql-replication](https://github.com/krowinski/php-mysql-replication)
 
 [中文说明](README-CN.md)
 
-## MySQL server settings
+## Table of Contents
 
-In your MySQL server configuration file you need to enable replication:
+- [MySQL Server Configuration](#mysql-server-configuration)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Event Subscribers](#event-subscribers)
+- [Event Routes](#event-routes)
+- [Management Commands](#management-commands)
+- [Thanks to](#thanks-to)
+
+## MySQL Server Configuration
+
+### Replication Settings
+
+In your MySQL server configuration file, you need to enable replication:
 
 ~~~bash
 [mysqld]
@@ -21,10 +33,13 @@ expire_logs_days = 10
 max_binlog_size  = 100M
 binlog_row_image = full
 binlog-format    = row #Very important if you want to receive write, update and delete row events
-Mysql replication events explained https://dev.mysql.com/doc/internals/en/event-meanings.html
 ~~~
 
-Mysql user privileges:
+For more information: [MySQL replication events explained](https://dev.mysql.com/doc/internals/en/event-meanings.html)
+
+### User Privileges
+
+Grant the necessary privileges to your MySQL user:
 
 ~~~bash
 GRANT REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'user'@'host';
@@ -36,13 +51,13 @@ GRANT SELECT ON `dbName`.* TO 'user'@'host';
 
 ### Laravel
 
-install
+Install via Composer:
 
 ~~~bash
 composer require "huangdijia/laravel-trigger:^4.0"
 ~~~
 
-publish config
+Publish the configuration file:
 
 ~~~bash
 php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider"
@@ -50,13 +65,13 @@ php artisan vendor:publish --provider="Huangdijia\Trigger\TriggerServiceProvider
 
 ### Lumen
 
-install
+Install via Composer:
 
 ~~~bash
 composer require "huangdijia/laravel-trigger:^4.0"
 ~~~
 
-edit `bootstrap/app.php` add:
+Edit `bootstrap/app.php` and add:
 
 ~~~php
 $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
@@ -64,7 +79,7 @@ $app->register(Huangdijia\Trigger\TriggerServiceProvider::class);
 $app->configure('trigger');
 ~~~
 
-publish config and route
+Publish configuration and routes:
 
 ~~~bash
 php artisan trigger:install [--force]
@@ -72,7 +87,7 @@ php artisan trigger:install [--force]
 
 ### Configure
 
-edit `.env`, add:
+Edit your `.env` file and add the following configuration:
 
 ~~~env
 TRIGGER_HOST=192.168.xxx.xxx
@@ -84,56 +99,64 @@ TRIGGER_PASSWORD=password
 
 ## Usage
 
+Start the trigger service to begin listening for MySQL events:
+
 ~~~bash
 php artisan trigger:start [-R=xxx]
 ~~~
 
-## Subscriber
+The service will monitor your MySQL binary log and trigger registered event handlers when database changes occur.
+
+## Event Subscribers
+
+Create a custom event subscriber by extending the `EventSubscriber` class:
 
 ~~~php
 <?php
 namespace App\Listeners;
 
 use Huangdijia\Trigger\EventSubscriber;
+use MySQLReplication\Event\DTO\UpdateRowsDTO;
+use MySQLReplication\Event\DTO\DeleteRowsDTO;
+use MySQLReplication\Event\DTO\WriteRowsDTO;
 
-class ExampeSubscriber extends EventSubscriber
+class ExampleSubscriber extends EventSubscriber
 {
     public function onUpdate(UpdateRowsDTO $event)
     {
-        //
+        // Handle UPDATE events
     }
 
     public function onDelete(DeleteRowsDTO $event)
     {
-        //
+        // Handle DELETE events
     }
 
     public function onWrite(WriteRowsDTO $event)
     {
-        //
+        // Handle INSERT events
     }
 }
 ~~~
 
-more subscriber usage
-
+For more subscriber usage examples, see:
 [EventSubscribers](https://github.com/krowinski/php-mysql-replication/blob/master/src/MySQLReplication/Event/EventSubscribers.php)
 
-## Event Route
+## Event Routes
 
-### common
+### Basic Usage
 
 ~~~php
 $trigger->on('database.table', 'write', function($event) { /* do something */ });
 ~~~
 
-### multi-tables and multi-evnets
+### Multi-tables and Multi-events
 
 ~~~php
 $trigger->on('database.table1,database.table2', 'write,update', function($event) { /* do something */ });
 ~~~
 
-### multi-events
+### Multi-events
 
 ~~~php
 $trigger->on('database.table1,database.table2', [
@@ -142,14 +165,14 @@ $trigger->on('database.table1,database.table2', [
 ]);
 ~~~
 
-### action as controller
+### Action as Controller
 
 ~~~php
-$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // call default method 'handle'
+$trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController'); // calls default method 'handle'
 $trigger->on('database.table', 'write', 'App\\Http\\Controllers\\ExampleController@write');
 ~~~
 
-### action as callable
+### Action as Callable
 
 ~~~php
 class Foo
@@ -160,13 +183,13 @@ class Foo
     }
 }
 
-$trigger->on('database.table', 'write', 'Foo@bar'); // call default method 'handle'
+$trigger->on('database.table', 'write', 'Foo@bar');
 $trigger->on('database.table', 'write', ['Foo', 'bar']);
 ~~~
 
-### action as job
+### Action as Job
 
-Job
+Define your job class:
 
 ~~~php
 namespace App\Jobs;
@@ -185,23 +208,28 @@ class ExampleJob extends Job
         dump($this->event);
     }
 }
-
 ~~~
 
-Route
+Register the job route:
 
 ~~~php
-$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob'); // call default method 'dispatch'
+$trigger->on('database.table', 'write', 'App\Jobs\ExampleJob'); // calls default method 'dispatch'
 $trigger->on('database.table', 'write', 'App\Jobs\ExampleJob@dispatch_now');
 ~~~
 
-## Event List
+## Management Commands
+
+### List Events
+
+View all registered event listeners:
 
 ~~~bash
 php artisan trigger:list [-R=xxx]
 ~~~
 
-## Terminate
+### Terminate Service
+
+Stop the trigger service gracefully:
 
 ~~~bash
 php artisan trigger:terminate [-R=xxx]
