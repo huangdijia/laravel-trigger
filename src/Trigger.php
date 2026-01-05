@@ -220,7 +220,7 @@ class Trigger
     /**
      * Bind events.
      */
-    public function on(string $table, array|string $eventType, array|callable|Closure|string|null $action = null): void
+    public function on(string $table, array|string $eventType, null|array|callable|Closure|string $action = null): void
     {
         // table as db.tb1,db.tb2,...
         if (str_contains($table, ',')) {
