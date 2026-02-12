@@ -94,7 +94,7 @@ class StartCommand extends Command
             goto start;
         }
 
-        return 0;
+        return Command::SUCCESS;
     }
 
     /**
@@ -107,7 +107,7 @@ class StartCommand extends Command
      */
     protected function listenForSignals(): void
     {
-        if (! function_exists('pcntl_async_signals')) {
+        if (! function_exists('pcntl_async_signals') || ! function_exists('pcntl_signal')) {
             return;
         }
 
