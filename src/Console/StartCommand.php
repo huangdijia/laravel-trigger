@@ -34,8 +34,10 @@ class StartCommand extends Command
     /**
      * Execute the console command.
      */
-    public function handle()
+    public function handle(): int
     {
+        $this->listenForSignals();
+
         $keepUp = $this->option('reset') ? false : true;
         $trigger = Trigger::replication($this->option('replication'));
 
@@ -91,5 +93,34 @@ class StartCommand extends Command
 
             goto start;
         }
+
+        return Command::SUCCESS;
+    }
+
+    /**
+     * Register SIGTERM/SIGINT handlers for immediate shutdown.
+     *
+     * The start() method blocks inside MySQLReplicationFactory::run() reading
+     * from a socket. Setting a flag is insufficient because the blocking read
+     * never returns to check it. We must exit directly from the signal handler,
+     * matching the pattern used by the library's own Terminate subscriber.
+     */
+    protected function listenForSignals(): void
+    {
+        if (! function_exists('pcntl_async_signals') || ! function_exists('pcntl_signal')) {
+            return;
+        }
+
+        pcntl_async_signals(true);
+
+        $handler = function (int $signal) {
+            $name = $signal === SIGTERM ? 'SIGTERM' : 'SIGINT';
+            $this->info("Received {$name}, shutting down...");
+
+            exit(0);
+        };
+
+        pcntl_signal(SIGTERM, $handler);
+        pcntl_signal(SIGINT, $handler);
     }
 }
