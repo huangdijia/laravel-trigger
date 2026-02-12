@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
+use MySQLReplication\Event\DTO\RowsDTO;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
@@ -282,10 +283,9 @@ class Trigger
         $events = [];
         $eventType = $event->getType();
 
-        if (is_callable([$event, 'getTableMap'])) {
-            /** @var \MySQLReplication\Event\DTO\RowsDTO $event */
-            $database = $event->getTableMap()->getDatabase();
-            $table = $event->getTableMap()->getTable();
+        if ($event instanceof RowsDTO) {
+            $database = $event->tableMap->database;
+            $table = $event->tableMap->table;
             $events[] = sprintf('%s.%s.%s', $database, $table, $eventType);
             $events[] = sprintf('%s.%s.%s', $database, $table, '*');
             $events[] = sprintf('%s.%s.%s', $database, '*', $eventType);
