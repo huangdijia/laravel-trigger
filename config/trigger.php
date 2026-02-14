@@ -8,6 +8,31 @@ declare(strict_types=1);
  * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
+$sessionVariables = [];
+$sessionVariablesRaw = (string) env('TRIGGER_SESSION_VARIABLES', '');
+
+if (trim($sessionVariablesRaw) !== '') {
+    foreach (explode(',', trim($sessionVariablesRaw)) as $pair) {
+        $pair = trim($pair);
+
+        if ($pair === '' || ! str_contains($pair, '=')) {
+            continue;
+        }
+
+        [$name, $value] = array_map('trim', explode('=', $pair, 2));
+
+        if ($name === '' || $value === '') {
+            continue;
+        }
+
+        if (is_numeric($value)) {
+            $value = (int) $value;
+        }
+
+        $sessionVariables[$name] = $value;
+    }
+}
+
 return [
     'default' => 'default',
 
@@ -31,10 +56,9 @@ return [
             'keepalive' => (int) env('TRIGGER_KEEPALIVE', 0),
 
             // MySQL session variables to apply on connect (for the metadata connection).
-            // Example: {"wait_timeout":7200,"interactive_timeout":7200,"net_read_timeout":3600,"net_write_timeout":3600}
-            'session_variables' => env('TRIGGER_SESSION_VARIABLES')
-                ? (json_decode((string) env('TRIGGER_SESSION_VARIABLES'), true) ?: [])
-                : [],
+            // Example:
+            // - wait_timeout=7200,interactive_timeout=7200
+            'session_variables' => $sessionVariables,
             'subscribers' => [
                 // Huangdijia\Trigger\Subscribers\Heartbeat::class,
             ],

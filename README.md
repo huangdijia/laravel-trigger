@@ -118,8 +118,8 @@ To improve stability, enable a keepalive ping and/or set session variables for t
 # Ping MySQL periodically (seconds). Set to 0 to disable.
 TRIGGER_KEEPALIVE=60
 
-# JSON map of session variables applied on connect.
-TRIGGER_SESSION_VARIABLES={"wait_timeout":7200,"interactive_timeout":7200,"net_read_timeout":3600,"net_write_timeout":3600}
+# Session variables applied on connect (comma-separated key=value pairs).
+TRIGGER_SESSION_VARIABLES=wait_timeout=7200,interactive_timeout=7200,net_read_timeout=3600,net_write_timeout=3600
 ~~~
 
 ## Usage

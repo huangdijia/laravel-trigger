@@ -114,8 +114,8 @@ TRIGGER_PASSWORD=password
 # 定期 ping MySQL（秒）。设置为 0 表示禁用。
 TRIGGER_KEEPALIVE=60
 
-# 在连接建立后应用的 session 变量（JSON）。
-TRIGGER_SESSION_VARIABLES={"wait_timeout":7200,"interactive_timeout":7200,"net_read_timeout":3600,"net_write_timeout":3600}
+# 在连接建立后应用的 session 变量（逗号分隔 key=value）。
+TRIGGER_SESSION_VARIABLES=wait_timeout=7200,interactive_timeout=7200,net_read_timeout=3600,net_write_timeout=3600
 ~~~
 
 ## 启动服务
