@@ -34,7 +34,7 @@ return [
             // Example:
             // - wait_timeout=7200,interactive_timeout=7200
             'session_variables' => env('TRIGGER_SESSION_VARIABLES', '')
-                ? array_map('trim', explode(',', (string) env('TRIGGER_SESSION_VARIABLES')))
+                ? array_filter(array_map('trim', explode(',', (string) env('TRIGGER_SESSION_VARIABLES'))))
                 : [],
             'subscribers' => [
                 // Huangdijia\Trigger\Subscribers\Heartbeat::class,
