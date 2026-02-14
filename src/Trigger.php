@@ -12,6 +12,7 @@ declare(strict_types=1);
 namespace Huangdijia\Trigger;
 
 use Closure;
+use Doctrine\DBAL\Connection;
 use Exception;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -30,6 +31,10 @@ use Throwable;
 class Trigger
 {
     protected \Illuminate\Contracts\Cache\Repository $cache;
+
+    protected ?Connection $dbConnection = null;
+
+    protected int $lastKeepalivePingAt = 0;
 
     protected array $events = [];
 
@@ -137,12 +142,17 @@ class Trigger
      */
     public function start(bool $keepUp = true): void
     {
-        tap(new MySQLReplicationFactory($this->configure($keepUp)), function (MySQLReplicationFactory $binLogStream) {
-            collect($this->getSubscribers())
-                ->reject(fn ($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
-                ->unique()
-                ->each(fn ($subscriber) => $binLogStream->registerSubscriber(new $subscriber($this)));
-        })->run();
+        $binLogStream = new MySQLReplicationFactory($this->configure($keepUp));
+
+        $this->dbConnection = $binLogStream->getDbConnection();
+        $this->applySessionVariables($this->dbConnection);
+
+        collect($this->getSubscribers())
+            ->reject(fn ($subscriber) => ! is_subclass_of($subscriber, EventSubscriber::class))
+            ->unique()
+            ->each(fn ($subscriber) => $binLogStream->registerSubscriber(new $subscriber($this)));
+
+        $binLogStream->run();
     }
 
     /**
@@ -183,6 +193,8 @@ class Trigger
     public function heartbeat(EventDTO $event): void
     {
         $this->rememberCurrent($event->getEventInfo()->binLogCurrent);
+
+        $this->keepalive();
     }
 
     /**
@@ -342,6 +354,67 @@ class Trigger
         });
 
         return $tables;
+    }
+
+    private function applySessionVariables(?Connection $connection): void
+    {
+        if ($connection === null) {
+            return;
+        }
+
+        $variables = $this->getConfig('session_variables', []);
+
+        if (! is_array($variables) || $variables === []) {
+            return;
+        }
+
+        foreach ($variables as $name => $value) {
+            if (! is_string($name) || ! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+                continue;
+            }
+
+            if (is_array($value) || is_object($value)) {
+                continue;
+            }
+
+            try {
+                $connection->executeStatement("SET SESSION {$name} = ?", [$value]);
+            } catch (Throwable) {
+                // Ignore session variable failures (permission/unsupported variables).
+            }
+        }
+    }
+
+    private function keepalive(): void
+    {
+        $period = (int) $this->getConfig('keepalive', 0);
+
+        if ($period <= 0 || $this->dbConnection === null) {
+            return;
+        }
+
+        $now = time();
+
+        if ($this->lastKeepalivePingAt > 0 && ($now - $this->lastKeepalivePingAt) < $period) {
+            return;
+        }
+
+        $this->lastKeepalivePingAt = $now;
+
+        try {
+            $this->dbConnection->executeQuery($this->dbConnection->getDatabasePlatform()->getDummySelectSQL());
+        } catch (Throwable) {
+            try {
+                $this->dbConnection->close();
+
+                // DBAL will reconnect automatically on the next query.
+                $this->dbConnection->executeQuery($this->dbConnection->getDatabasePlatform()->getDummySelectSQL());
+
+                $this->applySessionVariables($this->dbConnection);
+            } catch (Throwable) {
+                // If reconnect fails, the next metadata query will throw and the daemon can restart.
+            }
+        }
     }
 
     /**

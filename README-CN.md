@@ -102,6 +102,22 @@ TRIGGER_PASSWORD=password
 ...
 ~~~
 
+### 连接超时（建议）
+
+如果你的 MySQL（或其前置代理）会断开长时间空闲的连接（例如 `wait_timeout` / `interactive_timeout` 设置较小），trigger 进程可能会出现类似错误并退出：
+
+`SQLSTATE[HY000] ... 4031 The client was disconnected by the server because of inactivity.`
+
+为提升稳定性，你可以开启 keepalive 心跳查询，及/或为 trigger 的 MySQL 元数据连接设置 session 变量：
+
+~~~env
+# 定期 ping MySQL（秒）。设置为 0 表示禁用。
+TRIGGER_KEEPALIVE=60
+
+# 在连接建立后应用的 session 变量（JSON）。
+TRIGGER_SESSION_VARIABLES={"wait_timeout":7200,"interactive_timeout":7200,"net_read_timeout":3600,"net_write_timeout":3600}
+~~~
+
 ## 启动服务
 
 ~~~bash

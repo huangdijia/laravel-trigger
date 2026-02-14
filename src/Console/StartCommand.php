@@ -11,9 +11,12 @@ declare(strict_types=1);
 
 namespace Huangdijia\Trigger\Console;
 
+use Doctrine\DBAL\Exception as DbalException;
 use Huangdijia\Trigger\Facades\Trigger;
 use Illuminate\Console\Command;
 use MySQLReplication\Exception\MySQLReplicationException;
+use PDOException;
+use Throwable;
 
 class StartCommand extends Command
 {
@@ -92,6 +95,18 @@ class StartCommand extends Command
             sleep(1);
 
             goto start;
+        } catch (DbalException|PDOException $e) {
+            $this->error($e->getMessage());
+
+            if (! $this->shouldRetry($e)) {
+                throw $e;
+            }
+
+            // Keep current binlog position so we can resume after reconnect.
+            $this->info('Retry now');
+            sleep(1);
+
+            goto start;
         }
 
         return Command::SUCCESS;
@@ -122,5 +137,33 @@ class StartCommand extends Command
 
         pcntl_signal(SIGTERM, $handler);
         pcntl_signal(SIGINT, $handler);
+    }
+
+    private function shouldRetry(Throwable $e): bool
+    {
+        $pdo = $e instanceof PDOException ? $e : null;
+
+        if ($pdo === null && $e->getPrevious() instanceof PDOException) {
+            $pdo = $e->getPrevious();
+        }
+
+        if ($pdo !== null && isset($pdo->errorInfo[1])) {
+            $driverCode = (int) $pdo->errorInfo[1];
+
+            return in_array($driverCode, [2006, 2013, 2055, 4031], true);
+        }
+
+        $message = strtolower($e->getMessage());
+
+        if (str_contains($message, 'access denied') || str_contains($message, 'unknown database')) {
+            return false;
+        }
+
+        return str_contains($message, 'server has gone away')
+            || str_contains($message, 'lost connection')
+            || str_contains($message, 'disconnected by the server')
+            || str_contains($message, 'connection refused')
+            || str_contains($message, 'connection timed out')
+            || str_contains($message, 'broken pipe');
     }
 }

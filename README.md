@@ -106,6 +106,22 @@ TRIGGER_PASSWORD=password
 ...
 ~~~
 
+### Connection Timeouts (Recommended)
+
+If your MySQL server (or a proxy in front of it) disconnects idle clients (low `wait_timeout` / `interactive_timeout`), the trigger process may crash with errors like:
+
+`SQLSTATE[HY000] ... 4031 The client was disconnected by the server because of inactivity.`
+
+To improve stability, enable a keepalive ping and/or set session variables for the trigger's MySQL metadata connection:
+
+~~~env
+# Ping MySQL periodically (seconds). Set to 0 to disable.
+TRIGGER_KEEPALIVE=60
+
+# JSON map of session variables applied on connect.
+TRIGGER_SESSION_VARIABLES={"wait_timeout":7200,"interactive_timeout":7200,"net_read_timeout":3600,"net_write_timeout":3600}
+~~~
+
 ## Usage
 
 Start the trigger service to begin listening for MySQL events:
