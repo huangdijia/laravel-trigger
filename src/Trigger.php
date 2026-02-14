@@ -364,17 +364,35 @@ class Trigger
 
         $variables = $this->getConfig('session_variables', []);
 
+        if (is_string($variables)) {
+            $variables = array_filter(array_map('trim', explode(',', $variables)));
+        }
+
         if (! is_array($variables) || $variables === []) {
             return;
         }
 
         foreach ($variables as $name => $value) {
-            if (! is_string($name) || ! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
+            if (is_int($name)) {
+                $pair = trim((string) $value);
+
+                if ($pair === '' || ! str_contains($pair, '=')) {
+                    continue;
+                }
+
+                [$name, $value] = array_map('trim', explode('=', $pair, 2));
+            }
+
+            if (! is_string($name) || $name === '' || ! preg_match('/^[A-Za-z0-9_]+$/', $name)) {
                 continue;
             }
 
             if (is_array($value) || is_object($value)) {
                 continue;
+            }
+
+            if (is_string($value) && preg_match('/^-?\d+$/', $value)) {
+                $value = (int) $value;
             }
 
             try {

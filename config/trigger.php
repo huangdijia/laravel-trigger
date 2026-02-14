@@ -8,31 +8,6 @@ declare(strict_types=1);
  * @document https://github.com/huangdijia/laravel-trigger/blob/4.x/README.md
  * @contact  huangdijia@gmail.com
  */
-$sessionVariables = [];
-$sessionVariablesRaw = (string) env('TRIGGER_SESSION_VARIABLES', '');
-
-if (trim($sessionVariablesRaw) !== '') {
-    foreach (explode(',', trim($sessionVariablesRaw)) as $pair) {
-        $pair = trim($pair);
-
-        if ($pair === '' || ! str_contains($pair, '=')) {
-            continue;
-        }
-
-        [$name, $value] = array_map('trim', explode('=', $pair, 2));
-
-        if ($name === '' || $value === '') {
-            continue;
-        }
-
-        if (is_numeric($value)) {
-            $value = (int) $value;
-        }
-
-        $sessionVariables[$name] = $value;
-    }
-}
-
 return [
     'default' => 'default',
 
@@ -58,7 +33,9 @@ return [
             // MySQL session variables to apply on connect (for the metadata connection).
             // Example:
             // - wait_timeout=7200,interactive_timeout=7200
-            'session_variables' => $sessionVariables,
+            'session_variables' => env('TRIGGER_SESSION_VARIABLES', '')
+                ? array_map('trim', explode(',', (string) env('TRIGGER_SESSION_VARIABLES')))
+                : [],
             'subscribers' => [
                 // Huangdijia\Trigger\Subscribers\Heartbeat::class,
             ],
