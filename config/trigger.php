@@ -25,6 +25,17 @@ return [
             'tables' => env('TRIGGER_TABLES', '') ? explode(',', env('TRIGGER_TABLES')) : [],
 
             'heartbeat' => (int) env('TRIGGER_HEARTBEAT', 3),
+
+            // Periodically ping the MySQL metadata connection to avoid server-side idle disconnects.
+            // Set to 0 to disable.
+            'keepalive' => (int) env('TRIGGER_KEEPALIVE', 0),
+
+            // MySQL session variables to apply on connect (for the metadata connection).
+            // Example:
+            // - wait_timeout=7200,interactive_timeout=7200
+            'session_variables' => env('TRIGGER_SESSION_VARIABLES', '')
+                ? array_filter(array_map('trim', explode(',', (string) env('TRIGGER_SESSION_VARIABLES'))))
+                : [],
             'subscribers' => [
                 // Huangdijia\Trigger\Subscribers\Heartbeat::class,
             ],
