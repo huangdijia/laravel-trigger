@@ -15,13 +15,13 @@
     }],
     "require": {
         "php": "^8.2",
-        "illuminate/support": "^11.0 || ^12.0",
-        "illuminate/console": "^11.0 || ^12.0",
+        "illuminate/support": "^11.0 || ^12.0 || ^13.0",
+        "illuminate/console": "^11.0 || ^12.0 || ^13.0",
         "krowinski/php-mysql-replication": "^8.0 || ^9.0"
     },
     "require-dev": {
         "huangdijia/php-coding-standard": "^2.1",
-        "orchestra/testbench": "^9.0 || ^10.0",
+        "orchestra/testbench": "^9.0 || ^10.0 || ^11.0",
         "phpstan/phpstan": "2.1.x-dev"
     },
     "autoload": {
