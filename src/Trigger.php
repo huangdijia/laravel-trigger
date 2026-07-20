@@ -292,6 +292,16 @@ class Trigger
      */
     public function dispatch(EventDTO $event): void
     {
+        // MySQL only emits heartbeat events while the whole binlog is silent,
+        // so on a busy stream (e.g. one bulk UPDATE rewriting many rows for
+        // longer than wait_timeout) the heartbeat-driven keepalive never runs
+        // and the metadata connection is closed server-side (error 4031); the
+        // next schema lookup then kills the daemon mid-transaction and the
+        // whole transaction replays from the checkpoint. Pinging on the
+        // dispatch path keeps the connection alive under load; the ping is
+        // throttled internally to once per keepalive period.
+        $this->keepalive();
+
         $events = [];
         $eventType = $event->getType();
 
