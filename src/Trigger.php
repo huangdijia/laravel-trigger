@@ -222,6 +222,13 @@ class Trigger
         if (is_string($cache)) {
             try {
                 $current = @unserialize($cache, ['allowed_classes' => [BinLogCurrent::class]]);
+
+                // the file name and position must be usable to resume, or the start fails and clears the checkpoint
+                if (! $current instanceof BinLogCurrent
+                    || $current->getBinFileName() === ''
+                    || ! ctype_digit($current->getBinLogPosition())) {
+                    $current = false;
+                }
             } catch (Throwable) {
                 $current = false;
             }
