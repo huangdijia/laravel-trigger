@@ -17,7 +17,6 @@ use Exception;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
@@ -206,11 +205,16 @@ class Trigger
      */
     public function rememberCurrent(BinLogCurrent $binLogCurrent): void
     {
-        $this->cache->put(
-            $this->replicationCacheKey,
-            serialize($binLogCurrent),
-            Carbon::now()->addSeconds((int) $this->getConfig('checkpoint_ttl', 86400)),
-        );
+        $ttl = (int) $this->getConfig('checkpoint_ttl', 86400);
+
+        // put() deletes the key for a TTL of 0 or less, so treat that as "never expire"
+        if ($ttl <= 0) {
+            $this->cache->forever($this->replicationCacheKey, serialize($binLogCurrent));
+
+            return;
+        }
+
+        $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), $ttl);
     }
 
     /**

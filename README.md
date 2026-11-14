@@ -122,6 +122,18 @@ TRIGGER_KEEPALIVE=60
 TRIGGER_SESSION_VARIABLES=wait_timeout=7200,interactive_timeout=7200,net_read_timeout=3600,net_write_timeout=3600
 ~~~
 
+On a busy stream heartbeats stop, so the keepalive ping also runs while events are dispatched, and the resume position is remembered at transaction boundaries:
+
+~~~env
+# Remember the resume position at most this often (seconds). 0 = only on heartbeats.
+TRIGGER_CHECKPOINT_INTERVAL=5
+
+# How long a remembered position is kept (seconds). 0 = forever.
+TRIGGER_CHECKPOINT_TTL=86400
+~~~
+
+If you published `config/trigger.php` earlier, add `checkpoint_interval` and `checkpoint_ttl` to each replication to set them from the environment.
+
 ## Usage
 
 Start the trigger service to begin listening for MySQL events:
