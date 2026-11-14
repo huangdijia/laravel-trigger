@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\Cache;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
+use MySQLReplication\Event\DTO\QueryDTO;
 use MySQLReplication\Event\DTO\RowsDTO;
+use MySQLReplication\Event\DTO\XidDTO;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
@@ -35,6 +37,8 @@ class Trigger
     protected ?Connection $dbConnection = null;
 
     protected int $lastKeepalivePingAt = 0;
+
+    protected int $lastCheckpointAt = 0;
 
     protected array $events = [];
 
@@ -202,7 +206,11 @@ class Trigger
      */
     public function rememberCurrent(BinLogCurrent $binLogCurrent): void
     {
-        $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
+        $this->cache->put(
+            $this->replicationCacheKey,
+            serialize($binLogCurrent),
+            Carbon::now()->addSeconds((int) $this->getConfig('checkpoint_ttl', 86400)),
+        );
     }
 
     /**
@@ -317,6 +325,36 @@ class Trigger
         $events[] = '*.*.*';
 
         $this->fire($events, $event);
+
+        // after the event's actions ran, so a restart replays it rather than skipping it
+        $this->checkpoint($event);
+    }
+
+    /**
+     * Remember the resume position from the dispatch path, at most once per checkpoint_interval seconds.
+     *
+     * Heartbeats only arrive while the binlog is idle, so on a busy stream the checkpoint stopped advancing
+     * and could expire; a restart then started at the current server position and skipped every event in
+     * between. Only transaction boundaries are used: a position inside a transaction would resume after its
+     * TABLE_MAP event and without the rows already read.
+     */
+    public function checkpoint(EventDTO $event): void
+    {
+        $interval = (int) $this->getConfig('checkpoint_interval', 5);
+
+        if ($interval <= 0 || ! $this->isTransactionBoundary($event)) {
+            return;
+        }
+
+        $now = time();
+
+        if ($this->lastCheckpointAt > 0 && ($now - $this->lastCheckpointAt) < $interval) {
+            return;
+        }
+
+        $this->lastCheckpointAt = $now;
+
+        $this->rememberCurrent($event->getEventInfo()->binLogCurrent);
     }
 
     /**
@@ -411,6 +449,23 @@ class Trigger
                 // Ignore session variable failures (permission/unsupported variables).
             }
         }
+    }
+
+    /**
+     * An XID event ends an InnoDB transaction; a COMMIT or ROLLBACK query ends one on a non-transactional
+     * engine. Positions after these are safe to resume from.
+     */
+    private function isTransactionBoundary(EventDTO $event): bool
+    {
+        if ($event instanceof XidDTO) {
+            return true;
+        }
+
+        if (! $event instanceof QueryDTO) {
+            return false;
+        }
+
+        return preg_match('/^\s*(COMMIT|ROLLBACK)\b/i', $event->query) === 1;
     }
 
     private function keepalive(): void
