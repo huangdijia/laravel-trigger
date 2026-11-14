@@ -208,6 +208,8 @@ class Trigger
 
     /**
      * Get current.
+     *
+     * @throws LogicException when a checkpoint is stored but cannot be resumed from
      */
     public function getCurrent(): ?BinLogCurrent
     {
