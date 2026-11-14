@@ -326,7 +326,7 @@ class Trigger
 
         $this->fire($events, $event);
 
-        // after the event's actions ran, so a restart replays it rather than skipping it
+        // after the event's handlers ran (queued ones are pushed, not finished), so a restart replays it rather than skipping it
         $this->checkpoint($event);
     }
 
@@ -465,7 +465,13 @@ class Trigger
             return false;
         }
 
-        return preg_match('/^\s*(COMMIT|ROLLBACK)\b/i', $event->query) === 1;
+        // a whole COMMIT or ROLLBACK statement; ROLLBACK TO SAVEPOINT stays inside the transaction
+        $query = rtrim(trim($event->query), "; \t\n\r\0\x0B");
+
+        return preg_match(
+            '/^(?:COMMIT|ROLLBACK)(?:\s+WORK)?(?:\s+AND\s+(?:NO\s+)?CHAIN)?(?:\s+(?:NO\s+)?RELEASE)?$/i',
+            $query,
+        ) === 1;
     }
 
     private function keepalive(): void
