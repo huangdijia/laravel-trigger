@@ -30,6 +30,14 @@ return [
             // Set to 0 to disable.
             'keepalive' => (int) env('TRIGGER_KEEPALIVE', 0),
 
+            // Remember the resume position at transaction boundaries on a busy stream at most once
+            // per this many seconds (heartbeats only arrive while the binlog is idle).
+            // Set to 0 to remember it on heartbeats only (previous behavior).
+            'checkpoint_interval' => (int) env('TRIGGER_CHECKPOINT_INTERVAL', 5),
+
+            // How long a remembered resume position is kept, in seconds (was one hour); 0 keeps it forever.
+            'checkpoint_ttl' => (int) env('TRIGGER_CHECKPOINT_TTL', 86400),
+
             // MySQL session variables to apply on connect (for the metadata connection).
             // Example:
             // - wait_timeout=7200,interactive_timeout=7200

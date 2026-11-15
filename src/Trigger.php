@@ -17,13 +17,14 @@ use Exception;
 use Illuminate\Container\Container;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use LogicException;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
+use MySQLReplication\Event\DTO\QueryDTO;
 use MySQLReplication\Event\DTO\RowsDTO;
+use MySQLReplication\Event\DTO\XidDTO;
 use MySQLReplication\MySQLReplicationFactory;
 use ReflectionException;
 use ReflectionMethod;
@@ -36,6 +37,8 @@ class Trigger
     protected ?Connection $dbConnection = null;
 
     protected int $lastKeepalivePingAt = 0;
+
+    protected int $lastCheckpointAt = 0;
 
     protected array $events = [];
 
@@ -203,7 +206,16 @@ class Trigger
      */
     public function rememberCurrent(BinLogCurrent $binLogCurrent): void
     {
-        $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), Carbon::now()->addHours(1));
+        $ttl = (int) $this->getConfig('checkpoint_ttl', 86400);
+
+        // put() deletes the key for a TTL of 0 or less, so treat that as "never expire"
+        if ($ttl <= 0) {
+            $this->cache->forever($this->replicationCacheKey, serialize($binLogCurrent));
+
+            return;
+        }
+
+        $this->cache->put($this->replicationCacheKey, serialize($binLogCurrent), $ttl);
     }
 
     /**
@@ -319,6 +331,16 @@ class Trigger
      */
     public function dispatch(EventDTO $event): void
     {
+        // MySQL only emits heartbeat events while the whole binlog is silent,
+        // so on a busy stream (e.g. one bulk UPDATE rewriting many rows for
+        // longer than wait_timeout) the heartbeat-driven keepalive never runs
+        // and the metadata connection is closed server-side (error 4031); the
+        // next schema lookup then kills the daemon mid-transaction and the
+        // whole transaction replays from the checkpoint. Pinging on the
+        // dispatch path keeps the connection alive under load; the ping is
+        // throttled internally to once per keepalive period.
+        $this->keepalive();
+
         $events = [];
         $eventType = $event->getType();
 
@@ -334,6 +356,36 @@ class Trigger
         $events[] = '*.*.*';
 
         $this->fire($events, $event);
+
+        // after the event's handlers ran (queued ones are pushed, not finished), so a restart replays it rather than skipping it
+        $this->checkpoint($event);
+    }
+
+    /**
+     * Remember the resume position from the dispatch path, at most once per checkpoint_interval seconds.
+     *
+     * Heartbeats only arrive while the binlog is idle, so on a busy stream the checkpoint stopped advancing
+     * and could expire; a restart then started at the current server position and skipped every event in
+     * between. Only transaction boundaries are used: a position inside a transaction would resume after its
+     * TABLE_MAP event and without the rows already read.
+     */
+    public function checkpoint(EventDTO $event): void
+    {
+        $interval = (int) $this->getConfig('checkpoint_interval', 5);
+
+        if ($interval <= 0 || ! $this->isTransactionBoundary($event)) {
+            return;
+        }
+
+        $now = time();
+
+        if ($this->lastCheckpointAt > 0 && ($now - $this->lastCheckpointAt) < $interval) {
+            return;
+        }
+
+        $this->lastCheckpointAt = $now;
+
+        $this->rememberCurrent($event->getEventInfo()->binLogCurrent);
     }
 
     /**
@@ -428,6 +480,29 @@ class Trigger
                 // Ignore session variable failures (permission/unsupported variables).
             }
         }
+    }
+
+    /**
+     * An XID event ends an InnoDB transaction; a COMMIT or ROLLBACK query ends one on a non-transactional
+     * engine. Positions after these are safe to resume from.
+     */
+    private function isTransactionBoundary(EventDTO $event): bool
+    {
+        if ($event instanceof XidDTO) {
+            return true;
+        }
+
+        if (! $event instanceof QueryDTO) {
+            return false;
+        }
+
+        // a whole COMMIT or ROLLBACK statement; ROLLBACK TO SAVEPOINT stays inside the transaction
+        $query = rtrim(trim($event->query), "; \t\n\r\0\x0B");
+
+        return preg_match(
+            '/^(?:COMMIT|ROLLBACK)(?:\s+WORK)?(?:\s+AND\s+(?:NO\s+)?CHAIN)?(?:\s+(?:NO\s+)?RELEASE)?$/i',
+            $query,
+        ) === 1;
     }
 
     private function keepalive(): void
