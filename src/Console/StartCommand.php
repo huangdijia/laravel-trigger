@@ -61,7 +61,7 @@ class StartCommand extends Command
                         })
                 );
 
-                $binLogCurrent = $trigger->getCurrent();
+                $binLogCurrent = $keepUp ? $trigger->getCurrent() : null;
 
                 if ($keepUp && ! is_null($binLogCurrent)) {
                     $this->info('BinLog');

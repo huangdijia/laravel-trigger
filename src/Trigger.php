@@ -19,6 +19,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use LogicException;
 use MySQLReplication\BinLog\BinLogCurrent;
 use MySQLReplication\Config\ConfigBuilder;
 use MySQLReplication\Event\DTO\EventDTO;
@@ -207,19 +208,45 @@ class Trigger
 
     /**
      * Get current.
+     *
+     * @throws LogicException when a checkpoint is stored but cannot be resumed from
      */
     public function getCurrent(): ?BinLogCurrent
     {
-        if (! $cache = $this->cache->get($this->replicationCacheKey)) {
+        $cache = $this->cache->get($this->replicationCacheKey);
+
+        if ($cache === null) {
             return null;
         }
 
-        try {
-            return unserialize($cache);
-        } catch (Throwable $e) {
-            $this->clearCurrent();
-            return null;
+        $current = false;
+
+        if (is_string($cache)) {
+            try {
+                $current = @unserialize($cache, ['allowed_classes' => [BinLogCurrent::class]]);
+
+                // the file name and position must be usable to resume, or the start fails and clears the checkpoint
+                if (! $current instanceof BinLogCurrent
+                    || $current->getBinFileName() === ''
+                    || ! ctype_digit($current->getBinLogPosition())) {
+                    $current = false;
+                }
+            } catch (Throwable) {
+                $current = false;
+            }
         }
+
+        // Starting from the server's current position instead would silently skip every event since the
+        // checkpoint, so an unreadable checkpoint stops the listener until someone decides.
+        if (! $current instanceof BinLogCurrent) {
+            throw new LogicException(sprintf(
+                "The binlog checkpoint for replication '%s' (cache key '%s') is unreadable; refusing to resume from an unknown position. Inspect the key, then restore a known position or start with --reset.",
+                $this->name,
+                $this->replicationCacheKey,
+            ));
+        }
+
+        return $current;
     }
 
     /**

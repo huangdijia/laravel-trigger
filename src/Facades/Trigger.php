@@ -29,7 +29,7 @@ use MySQLReplication\Event\DTO\EventDTO;
  * @method static boolean isTerminated()
  * @method static void heartbeat(EventDTO $event)
  * @method static void rememberCurrent(BinLogCurrent $binLogCurrent)
- * @method static \MySQLReplication\BinLog\BinLogCurrent getCurrent()
+ * @method static ?\MySQLReplication\BinLog\BinLogCurrent getCurrent()
  * @method static void clearCurrent()
  * @method static void on(string $table, $eventType, $action = null)
  * @method static void dispatch(EventDTO $event)
